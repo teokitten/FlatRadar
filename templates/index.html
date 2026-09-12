@@ -1,0 +1,4469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlatRadar</title>
+<style>
+:root {
+  --bg: #080e1f;
+  --surface: #0d1528;
+  --surface-2: #132033;
+  --border: #1c2f50;
+  --text: #dce8f5;
+  --text-muted: #5d7ea0;
+  --accent: #4a8fff;
+  --accent-hover: #2a6fef;
+  --vivid: #b45aff;
+  --vivid-soft: #9333ea;
+  --score-green: #4ade80;
+  --score-amber: #fbbf24;
+  --score-red: #f87171;
+  --badge-new: #4a8fff;
+  --badge-drop: #4ade80;
+  --tag-rent: #818cf8;
+  --tag-buy: #fb923c;
+  --radius: 8px;
+  --nav-height: 56px;
+  --bar-height: 36px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+
+button, input, select { font-family: inherit; font-size: inherit; }
+
+/* Nav bar */
+#nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 32px;
+}
+
+.wordmark {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #4a8fff, #b45aff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+}
+
+#nav-items { display: flex; align-items: center; gap: 4px; flex: 1; }
+
+.nav-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 18px 12px;
+  height: var(--nav-height);
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.nav-btn:hover {
+  color: var(--text);
+}
+
+.nav-btn.active {
+  color: var(--vivid);
+  border-bottom: 2px solid var(--vivid);
+}
+
+.nav-btn[data-section="settings"]:hover {
+  color: var(--vivid);
+}
+
+.soon-pill {
+  font-size: 9px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 5px;
+  margin-left: 4px;
+}
+
+#sched-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+#sched-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+#sched-dot.running {
+  background: var(--score-green);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Main area */
+#main {
+  margin-top: var(--nav-height);
+  margin-bottom: var(--bar-height);
+  padding: 24px;
+}
+
+/* Status bar */
+#status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bar-height);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 24px;
+  font-size: 12px;
+  color: var(--text-muted);
+  z-index: 100;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* Filter bar */
+#filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+input, select, textarea {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+#f-name {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--surface-2) inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+}
+
+.btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-accent:hover {
+  background: var(--accent-hover);
+}
+
+.btn:disabled { opacity: 0.6; cursor: default; }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px 10px;
+}
+
+#card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, opacity 0.2s;
+}
+
+.card:hover { border-color: var(--accent); }
+
+.page-btn {
+  padding: 5px 11px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  min-width: 34px;
+}
+.page-btn:hover:not([disabled]) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.page-btn.active {
+  background: var(--vivid);
+  border-color: var(--vivid);
+  color: #fff;
+  font-weight: 600;
+}
+.page-btn[disabled] {
+  opacity: 0.35;
+  cursor: default;
+}
+#pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 24px 0 8px;
+  flex-wrap: wrap;
+}
+
+/* Detail panel */
+#detail-panel {
+  position: fixed;
+  top: var(--nav-height);
+  right: -480px;
+  width: 480px;
+  max-width: 100vw;
+  height: calc(100vh - var(--nav-height) - var(--bar-height));
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  transition: right 0.25s ease;
+  z-index: 200;
+}
+
+#panel-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 199;
+  display: none;
+}
+
+#panel-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  z-index: 2;
+}
+
+/* Criteria */
+#criteria-wrap {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+#profile-list-col { width: 280px; flex-shrink: 0; }
+#profile-form-col { flex: 1; min-width: 280px; }
+
+.profile-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-row.selected { border-color: var(--accent); }
+
+.profile-row.editing {
+  border-color: var(--vivid);
+  background: rgba(180, 90, 255, 0.05);
+}
+.profile-row.editing .profile-row-name {
+  color: var(--text);
+}
+
+.profile-row:hover:not(.editing) {
+  background: var(--surface-2);
+  border-color: var(--border);
+  cursor: pointer;
+}
+
+.btn-edit-profile {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-edit-profile:hover {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.btn-edit-profile:active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-edit-profile.active {
+  background: var(--vivid);
+  border-color: var(--vivid);
+  color: #fff;
+}
+
+.toggle {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.toggle.on { background: var(--accent); }
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+.toggle.on::after { left: 18px; }
+
+.toggle-switch { position: relative; display: inline-block; width: 34px; height: 18px; flex-shrink: 0; }
+.toggle-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.toggle-slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::after { left: 18px; }
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+
+.field { margin-bottom: 16px; }
+.field label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 12px; }
+.field .help { color: var(--text-muted); font-size: 11px; margin-top: 4px; }
+
+.pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.pill {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pill input { display: none; }
+
+.row-2 { display: flex; gap: 12px; }
+.row-2 > div { flex: 1; }
+
+.placeholder {
+  padding: 80px 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Saved tracker table */
+#saved-table { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.saved-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 140px 70px 130px 70px 80px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.saved-row:last-child { border-bottom: none; }
+.saved-head {
+  background: var(--surface-2);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.saved-body-row { background: var(--surface); }
+.saved-body-row:hover { background: var(--surface-2); }
+.saved-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: #1a1a1a; display: block; }
+.saved-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-locality { color: var(--text-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-status-select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  width: 100%;
+}
+.notes-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.notes-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.notes-panel.open { max-height: 600px; }
+.notes-panel-inner { padding: 14px 18px; }
+.note-item { padding: 8px 0; border-bottom: 1px solid var(--border); position: relative; }
+.note-item:last-of-type { border-bottom: none; }
+.note-time { color: var(--text-muted); font-size: 11px; margin-bottom: 2px; }
+.note-del {
+  position: absolute; right: 0; top: 6px;
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; opacity: 0; font-size: 12px;
+}
+.note-item:hover .note-del { opacity: 1; }
+
+/* Notification log table */
+#notif-log-table { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.notif-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 110px 90px 90px;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  align-items: center;
+}
+.notif-row:last-child { border-bottom: none; }
+.notif-head { background: var(--surface-2); font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+.notif-listing { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
+
+.notif-filter-pill {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.notif-filter-pill.active {
+  background: var(--vivid);
+  border-color: var(--vivid);
+  color: #fff;
+}
+.activity-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.activity-row:last-child { border-bottom: none; }
+
+/* Insights */
+.insights-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+@media (max-width: 900px) { .insights-row { grid-template-columns: 1fr; } }
+.insights-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.insights-card h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--vivid); }
+.price-dist-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+}
+.price-dist-pill.active {
+  background: var(--vivid);
+  border-color: var(--vivid);
+  color: #fff;
+}
+.chart-box { position: relative; height: 280px; margin-top: 14px; }
+.health-row { display: grid; grid-template-columns: 1fr auto auto 12px; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.health-row:last-child { border-bottom: none; }
+.health-dot { width: 10px; height: 10px; border-radius: 50%; }
+.pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; }
+.pulse-item .pulse-big { font-size: 22px; font-weight: 700; }
+.pulse-item .pulse-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.pulse-item .pulse-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.tooltip-box { display: none; }
+.tooltip-trigger:hover .tooltip-box { display: block; }
+
+.criteria-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.criteria-card-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--vivid);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.criteria-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.criteria-card .field {
+  margin-bottom: 14px;
+}
+
+.criteria-card .field:last-child {
+  margin-bottom: 0;
+}
+
+.criteria-card label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.criteria-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.feature-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  transition: border-color 0.15s;
+}
+.feature-toggle:hover {
+  border-color: var(--accent);
+}
+.feature-toggle input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--vivid);
+}
+
+.criteria-sublabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+
+#praha-district-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.freq-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.freq-pill.active {
+  background: var(--vivid);
+  color: #fff;
+  border-color: var(--vivid);
+}
+
+.heart-btn:hover span {
+  color: #ef4444 !important;
+}
+.heart-btn:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.heart-btn {
+  position: relative;
+}
+
+.note-toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.btn-danger-outline {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-danger-outline:hover {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: var(--score-red);
+  color: var(--score-red);
+}
+.btn-danger-outline:active {
+  background: var(--score-red);
+  color: #fff;
+  border-color: var(--score-red);
+}
+
+@media (max-width: 700px) {
+  .criteria-top-row {
+    flex-direction: column;
+  }
+  .criteria-mid-row {
+    flex-direction: column;
+  }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="nav">
+  <span class="wordmark">FlatRadar</span>
+  <div id="nav-items">
+    <button class="nav-btn" data-section="criteria">Search setup</button>
+    <button class="nav-btn" data-section="saved">Saved listings</button>
+    <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+      <button class="nav-btn" data-section="insights">Insights</button>
+      <button class="nav-btn" data-section="log">Logs</button>
+      <button class="nav-btn settings-btn" data-section="settings" title="App settings"
+        style="font-size:18px;padding:0 8px">⚙</button>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+
+  <div class="section active" id="section-criteria">
+    <div id="criteria-wrap">
+      <div id="profile-list-col">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+          <strong>Search profiles</strong>
+          <button id="btn-new-profile" class="btn btn-accent" style="padding:6px 10px">New profile</button>
+        </div>
+        <div id="profile-list"></div>
+      </div>
+      <div id="profile-form-col">
+        <div id="profile-form">
+          <div class="criteria-top-row" style="display:flex;gap:14px;align-items:flex-start">
+            <div class="criteria-card" style="flex:1">
+              <div class="criteria-card-header">Profile</div>
+              <div class="field">
+                <label>Profile name</label>
+                <input type="text" id="f-name" placeholder="e.g. Prague rental" style="width:100%">
+              </div>
+              <div class="criteria-row">
+                <div class="field">
+                  <label>Listing type</label>
+                  <div class="pill-group" id="f-listing-type">
+                    <label class="pill"><input type="radio" name="listing_type" value="rent">Rent</label>
+                    <label class="pill"><input type="radio" name="listing_type" value="buy">Buy</label>
+                    <label class="pill active"><input type="radio" name="listing_type" value="both" checked>Both</label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Property type</label>
+                  <div class="pill-group" id="f-property-type">
+                    <label class="pill"><input type="radio" name="property_type" value="flat">Flat</label>
+                    <label class="pill"><input type="radio" name="property_type" value="house">House</label>
+                    <label class="pill active"><input type="radio" name="property_type" value="both" checked>Both</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="criteria-card" style="flex:1">
+              <div class="criteria-card-header">Budget &amp; size</div>
+              <div class="criteria-row">
+                <div class="field">
+                  <label>Min price (CZK)</label>
+                  <input type="number" id="f-price-min" placeholder="0" style="width:100%">
+                </div>
+                <div class="field">
+                  <label>Max price (CZK)</label>
+                  <input type="number" id="f-price-max" placeholder="0 = no limit" style="width:100%">
+                </div>
+              </div>
+              <div class="criteria-row">
+                <div class="field">
+                  <label>Min size (m²)</label>
+                  <input type="number" id="f-size-min" placeholder="0" style="width:100%">
+                </div>
+                <div class="field">
+                  <label>Max size (m²)</label>
+                  <input type="number" id="f-size-max" placeholder="0 = no limit" style="width:100%">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="criteria-card">
+            <div class="criteria-card-header">Location</div>
+            <div class="field">
+              <label>City</label>
+              <div id="city-selector" class="criteria-pill-group"></div>
+            </div>
+            <div id="praha-district-section" style="display:none">
+              <div class="criteria-sublabel">Districts <span style="font-weight:400;color:var(--text-muted)">(leave empty to match all of Praha)</span></div>
+              <div id="district-selector" class="criteria-pill-group"></div>
+
+              <div class="criteria-sublabel">Neighborhoods <span style="font-weight:400;color:var(--text-muted)">(cadastral areas)</span></div>
+              <div id="neighborhood-selector" class="criteria-pill-group"></div>
+
+              <div class="criteria-sublabel">Metro stops</div>
+              <div id="metro-selector" style="margin-top:6px;display:flex;flex-direction:column;gap:10px"></div>
+            </div>
+          </div>
+
+          <div class="criteria-mid-row" style="display:flex;gap:14px;align-items:stretch">
+            <div class="criteria-card" style="flex:1">
+              <div class="criteria-card-header">Property</div>
+
+              <div class="field">
+                <label>Room type <span style="font-weight:400;color:var(--text-muted)">(select all that work)</span></label>
+                <div id="room-type-selector" class="criteria-pill-group" style="margin-top:8px"></div>
+              </div>
+
+              <div class="field">
+                <label>Furnished</label>
+                <div id="furnished-selector" class="criteria-pill-group" style="margin-top:8px"></div>
+              </div>
+
+              <div class="field">
+                <label>Condition</label>
+                <div id="building-age-selector" class="criteria-pill-group" style="margin-top:8px"></div>
+              </div>
+
+              <div class="field">
+                <label>Must have</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+                  <label class="feature-toggle"><input type="checkbox" id="f-outdoor"> Balcony, loggia, terrace, or patio</label>
+                  <label class="feature-toggle"><input type="checkbox" id="f-parking"> Parking</label>
+                  <label class="feature-toggle"><input type="checkbox" id="f-cellar"> Cellar / storage</label>
+                  <label class="feature-toggle"><input type="checkbox" id="f-bathtub"> Bathtub</label>
+                  <label class="feature-toggle"><input type="checkbox" id="f-dishwasher"> Dishwasher</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="criteria-card" style="flex:1">
+              <div class="criteria-card-header">Amenities &amp; proximity</div>
+              <div class="field">
+                <label>
+                  Supermarket proximity
+                  <span class="tooltip-trigger" style="display:inline-flex;align-items:center;justify-content:center;
+  width:15px;height:15px;border-radius:50%;border:1px solid var(--text-muted);
+  color:var(--text-muted);font-size:10px;cursor:default;margin-left:5px;
+  position:relative;user-select:none">
+  ?
+  <span class="tooltip-box" style="position:absolute;bottom:calc(100% + 6px);left:50%;
+    transform:translateX(-50%);background:#2a2a2a;color:var(--text);font-size:12px;
+    font-weight:400;line-height:1.5;padding:8px 10px;border-radius:6px;
+    width:230px;white-space:normal;z-index:500;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none">
+    Select chains you shop at and a maximum walking/transit distance.
+    Listings with GPS will score higher when they're close to your selected chains.
+    Nearby supermarkets load automatically when you select a city or district above.
+  </span>
+</span>
+                </label>
+                <div id="chain-selector" class="criteria-pill-group"></div>
+                <div id="distance-picker" style="display:none;margin-top:10px">
+                  <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">Maximum distance</div>
+                  <div id="distance-pills" class="criteria-pill-group"></div>
+                </div>
+              </div>
+              <div class="field" style="margin-top:14px;padding-top:14px;
+                border-top:1px solid var(--border)">
+                <label>Near a park</label>
+                <div id="park-status" style="font-size:12px;color:var(--text-muted);
+                  margin:4px 0 8px">Select a city or district to see nearby parks.</div>
+                <div id="park-list" style="font-size:12px;color:var(--text-muted);
+                  margin-bottom:8px"></div>
+                <div id="park-distance-picker" style="display:none">
+                  <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">
+                    Score listings higher when within this distance of a park
+                  </div>
+                  <div id="park-distance-pills" class="criteria-pill-group"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Floor minimum <span style="font-weight:400">(0 = no minimum)</span></label>
+                <input type="number" id="f-floor-min" value="0" style="width:100%">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:14px;align-items:stretch">
+          <div class="criteria-card" style="flex:1">
+            <div class="criteria-card-header">Notifications</div>
+            <div class="field">
+              <label>
+                Minimum score – shown in feed and triggers notifications
+                <span class="tooltip-trigger" style="display:inline-flex;align-items:center;justify-content:center;
+  width:15px;height:15px;border-radius:50%;border:1px solid var(--text-muted);
+  color:var(--text-muted);font-size:10px;cursor:default;margin-left:5px;
+  position:relative;user-select:none">
+  ?
+  <span class="tooltip-box" style="position:absolute;bottom:calc(100% + 6px);left:50%;
+    transform:translateX(-50%);background:#2a2a2a;color:var(--text);font-size:12px;
+    font-weight:400;line-height:1.5;padding:8px 10px;border-radius:6px;
+    width:220px;white-space:normal;z-index:500;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none">
+    Each listing is scored 0–100 against your criteria. Only listings that meet or exceed this score will trigger an email notification. Lower the threshold to get more alerts, raise it for only strong matches.
+  </span>
+</span>
+              </label>
+              <input type="number" id="f-threshold" min="0" max="100" value="60" style="width:100%">
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px">
+              <div>
+                <div style="font-weight:500;font-size:13px">Email notifications</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Notify me when a new listing matches this profile</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="f-notify-email">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="notify-settings-hint" style="display:none;font-size:12px;color:var(--text-muted);margin-top:6px">
+              Make sure your email is configured in
+              <button onclick="showSection('settings')"
+                style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:12px;text-decoration:underline">
+                ⚙ Settings
+              </button>
+              before saving.
+            </div>
+          </div>
+
+          <div class="criteria-card" style="flex:1">
+            <div class="criteria-card-header">Commute</div>
+            <div class="field">
+              <label>Workplace address</label>
+              <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px">
+                <input type="text" id="f-workplace"
+                  autocomplete="off"
+                  readonly
+                  onfocus="this.removeAttribute('readonly')"
+                  placeholder="e.g. Wenceslas Square, Prague"
+                  style="flex:1">
+                <button type="button" id="btn-geocode"
+                  style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius);
+                  padding:8px 12px;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0">
+                  Locate
+                </button>
+              </div>
+              <div id="geocode-result" style="font-size:12px;margin-top:6px;
+                color:var(--text-muted)"></div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.7">
+                After locating your workplace:
+                <ul style="margin:4px 0 0 16px;padding:0">
+                  <li>Each apartment card in the feed shows <strong style="color:var(--text)">🚶 X min walk</strong> to your office</li>
+                  <li>Use <strong style="color:var(--text)">"Shortest commute first"</strong> in the feed sort dropdown to rank apartments by proximity to work</li>
+                  <li>The apartment detail panel shows the exact walking route time</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;align-items:center;
+            gap:8px;margin-top:16px">
+            <span id="profile-save-error"
+              style="font-size:12px;color:var(--score-red)"></span>
+            <button id="btn-cancel-edit"
+              style="display:none;background:none;border:1px solid var(--border);
+              color:var(--text-muted);border-radius:var(--radius);
+              padding:8px 16px;font-size:13px;cursor:pointer">
+              Cancel
+            </button>
+            <button id="btn-save-profile" data-label="Save profile"
+              style="background:var(--accent);color:#fff;border:none;
+              border-radius:var(--radius);padding:8px 16px;
+              font-size:13px;font-weight:600;cursor:pointer">
+              Save profile
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="delete-profile-modal" style="display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius);padding:28px;max-width:360px;width:90%;
+        box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+        <div style="font-weight:700;font-size:15px;margin-bottom:8px">Delete profile?</div>
+        <div id="delete-profile-name" style="color:var(--text-muted);font-size:13px;
+          margin-bottom:20px"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button id="btn-cancel-delete"
+            style="background:none;border:1px solid var(--border);border-radius:var(--radius);
+            padding:7px 16px;font-size:13px;cursor:pointer;color:var(--text)">
+            Cancel
+          </button>
+          <button id="btn-confirm-delete"
+            style="background:var(--score-red);border:none;border-radius:var(--radius);
+            padding:7px 16px;font-size:13px;cursor:pointer;color:#fff;font-weight:600">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="section-insights">
+    <div id="insights-empty" style="display:none;text-align:center;padding:80px 0;color:var(--text-muted)">
+      <div style="font-size:32px;margin-bottom:12px">📊</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">Not enough data yet</div>
+      <div>Run a fetch from the Feed to populate listings, then come back.</div>
+    </div>
+
+    <div id="insights-content" style="display:none">
+      <div class="insights-row">
+        <div class="insights-card">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <h3>Avg price / m²</h3>
+            <div class="pill-group" id="price-chart-type">
+              <span class="pill active" data-type="rent">Rent</span>
+              <span class="pill" data-type="buy">Buy</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Average asking price per square meter, grouped by area.
+          </div>
+          <div class="chart-box"><canvas id="price-chart"></canvas></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:8px">Districts with fewer than 3 listings excluded.</div>
+        </div>
+
+        <div class="insights-card">
+          <h3>New listings per day (last 14 days)</h3>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Number of new listings across all sources over the last 14 days.
+          </div>
+          <div class="chart-box"><canvas id="activity-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="insights-row">
+        <div class="insights-card">
+          <h3>Source health</h3>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Active listing count and last successful fetch per source.
+          </div>
+          <div id="health-rows" style="margin-top:8px"></div>
+        </div>
+
+        <div class="insights-card">
+          <h3>Market pulse — last 7 days vs previous 7</h3>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            New listing volume and average price this week vs last week.
+          </div>
+          <div id="pulse-body"></div>
+        </div>
+      </div>
+
+      <div class="insights-row">
+        <div class="insights-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:13px;font-weight:600;color:var(--vivid)">Time on market</div>
+            <span style="font-size:11px;color:var(--text-muted)">avg days before listing disappears</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Average days a listing stays active before disappearing. Needs a few days of data.
+          </div>
+          <div class="chart-box"><canvas id="tom-chart"></canvas></div>
+        </div>
+
+        <div class="insights-card">
+          <div style="font-size:13px;font-weight:600;color:var(--vivid);margin-bottom:16px">
+            Best days to check (last 30 days)
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Which days of the week new listings appear most, based on the last 30 days.
+          </div>
+          <div class="chart-box"><canvas id="dow-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="insights-row">
+        <div class="insights-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:13px;font-weight:600;color:var(--vivid)">Price distribution</div>
+            <div style="display:flex;gap:6px">
+              <button class="price-dist-pill active" data-type="rent">Rent</button>
+              <button class="price-dist-pill" data-type="buy">Buy</button>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            How listings are distributed across price ranges.
+          </div>
+          <div class="chart-box"><canvas id="price-dist-chart"></canvas></div>
+        </div>
+
+        <div class="insights-card">
+          <div style="font-size:13px;font-weight:600;color:var(--vivid);margin-bottom:16px">
+            Profile match rate
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+            Share of all active listings that meet each profile's score threshold.
+          </div>
+          <div id="match-rate-list"></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:10px">
+            % of all active listings that meet your score threshold.
+            Low % = tight criteria. High % = broad criteria.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="section-settings">
+    <div style="max-width:720px">
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-weight:600;font-size:14px;color:var(--vivid)">Scheduler</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="sched-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--score-green);display:inline-block"></span>
+            <span id="sched-status-label" style="font-size:13px">Running</span>
+            <button id="btn-sched-toggle" class="btn" style="padding:4px 12px;font-size:12px">Pause</button>
+          </div>
+        </div>
+
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+          <span id="sched-last-run">Last check: never</span><span id="sched-sep"> · </span><span id="sched-next-run"></span>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:8px">Fetch frequency</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="freq-pills">
+            <button class="freq-pill" data-val="15">Every 15 min</button>
+            <button class="freq-pill" data-val="30">Every 30 min</button>
+            <button class="freq-pill" data-val="60">Every hour</button>
+            <button class="freq-pill" data-val="0">Manual only</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:8px">
+            Email notification frequency
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="notif-freq-pills">
+            <button class="freq-pill" data-val="daily">Once a day</button>
+            <button class="freq-pill" data-val="3days">Every 3 days</button>
+            <button class="freq-pill" data-val="weekly">Once a week</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6">
+            Emails are only sent when new matching listings have appeared since your last notification.
+            If nothing new matches your profile, no email is sent regardless of frequency.
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button id="btn-save-sched" data-label="Save schedule" class="btn" style="background:var(--surface-2);border:1px solid var(--border)">Save schedule</button>
+          <button id="btn-fetch-now" class="btn btn-accent">Fetch now</button>
+        </div>
+      </div>
+
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--vivid)">Email notifications</div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <span class="toggle" id="notif-toggle"></span>
+          <span>Enable notifications</span>
+        </div>
+
+        <div id="email-form">
+          <div class="field">
+            <label>SMTP host</label>
+            <select id="s-smtp-host-preset" style="width:100%;margin-bottom:6px">
+              <option value="smtp.mail.yahoo.com">Yahoo Mail</option>
+              <option value="smtp.gmail.com">Gmail</option>
+              <option value="smtp.office365.com">Outlook / Office 365</option>
+              <option value="smtp.mail.me.com">iCloud Mail</option>
+              <option value="custom">Custom SMTP…</option>
+            </select>
+            <input type="text" id="s-smtp-host" autocomplete="off"
+              placeholder="mail.example.com"
+              style="width:100%;display:none">
+          </div>
+          <div class="field">
+            <label>SMTP port</label>
+            <input type="number" id="s-smtp-port" style="width:100%">
+          </div>
+          <div class="field">
+            <label>SMTP user</label>
+            <input type="text" id="s-smtp-user" placeholder="you@gmail.com" style="width:100%">
+          </div>
+          <div class="field">
+            <label>SMTP password<span class="tooltip-trigger" style="display:inline-flex;align-items:center;justify-content:center;
+  width:15px;height:15px;border-radius:50%;border:1px solid var(--text-muted);
+  color:var(--text-muted);font-size:10px;cursor:default;margin-left:5px;
+  position:relative;user-select:none">
+  ?
+  <span class="tooltip-box" style="position:absolute;bottom:calc(100% + 6px);left:50%;
+    transform:translateX(-50%);background:#2a2a2a;color:var(--text);font-size:12px;
+    font-weight:400;line-height:1.5;padding:8px 10px;border-radius:6px;
+    width:240px;white-space:normal;z-index:500;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none">
+    Yahoo: go to account.yahoo.com → Security → Generate app password → select "Other app" → name it FlatRadar → Generate. Copy the code shown and paste it here. This is not your regular Yahoo password.
+  </span>
+</span></label>
+            <input type="password" id="s-smtp-password" placeholder="App password (not your Google password)" style="width:100%">
+            <div id="smtp-password-instructions"></div>
+          </div>
+          <div class="field">
+            <label>From address</label>
+            <input type="text" id="s-email-from" placeholder="leave blank to use SMTP user" style="width:100%">
+          </div>
+          <div class="field">
+            <label>To address</label>
+            <input type="text" id="s-email-to" placeholder="email to receive alerts" style="width:100%">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button id="btn-save-settings" data-label="Save settings" class="btn btn-accent">Save settings</button>
+            <button id="btn-test-email" class="btn">Send test email</button>
+          </div>
+          <div id="test-email-result" style="font-size:13px;margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="section-log" class="section" style="height:calc(100vh - var(--nav-height) - var(--bar-height) - 32px);overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch;height:100%">
+
+      <!-- Left column: Scraper activity + Price changes stacked -->
+      <div style="display:flex;flex-direction:column;gap:16px;height:100%;overflow:hidden">
+
+        <!-- Scraper activity card -->
+        <div style="background:var(--surface);border:1px solid var(--border);
+          border-radius:var(--radius);padding:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--vivid);
+            text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px">
+            Scraper activity
+          </div>
+          <div style="max-height:220px;overflow-y:auto;scrollbar-width:thin;
+            scrollbar-color:var(--border) transparent">
+            <div id="activity-feed"></div>
+          </div>
+          <button id="btn-load-more-runs" class="page-btn"
+            style="width:100%;margin-top:10px;display:none">Load more</button>
+        </div>
+
+        <!-- Price changes card -->
+        <div style="background:var(--surface);border:1px solid var(--border);
+          border-radius:var(--radius);padding:16px;flex:1;
+          display:flex;flex-direction:column">
+          <div style="font-size:12px;font-weight:700;color:var(--vivid);
+            text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px">
+            Price changes
+            <span style="font-size:10px;font-weight:400;color:var(--text-muted);
+              text-transform:none;letter-spacing:0">&nbsp;last 7 days</span>
+          </div>
+          <div id="price-changes-feed" style="flex:1;overflow-y:auto;
+            scrollbar-width:thin;scrollbar-color:var(--border) transparent"></div>
+        </div>
+
+      </div>
+
+      <!-- Right column: Notification history at full height -->
+      <div style="background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius);padding:16px;height:100%;
+        display:flex;flex-direction:column;overflow:hidden">
+
+        <div style="font-size:12px;font-weight:700;color:var(--vivid);
+          text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;
+          flex-shrink:0">
+          Notification history
+        </div>
+
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-shrink:0;
+          flex-wrap:wrap">
+          <button class="notif-filter-pill active" data-type="all">All</button>
+          <button class="notif-filter-pill" data-type="new_match">New matches</button>
+          <button class="notif-filter-pill" data-type="price_drop">Price drops</button>
+          <button class="notif-filter-pill" data-type="failed">Failed only</button>
+        </div>
+
+        <div id="notif-log-list" style="overflow-y:auto;flex:1;
+          scrollbar-width:thin;scrollbar-color:var(--border) transparent"></div>
+
+        <button id="btn-load-more-notifs" class="page-btn"
+          style="width:100%;margin-top:8px;flex-shrink:0;display:none">
+          Load more
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="section-feed">
+    <div id="filter-bar">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">Search profile</span>
+        <select id="filter-profile"><option value="">No profile – show all</option></select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">Type</span>
+        <select id="filter-type">
+          <option value="">All types</option>
+          <option value="rent">For rent</option>
+          <option value="buy">For sale</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">Sort by</span>
+        <select id="filter-sort">
+          <option value="score">Best match first</option>
+          <option value="date">Newest first</option>
+          <option value="price_asc">Cheapest first</option>
+          <option value="price_desc">Most expensive first</option>
+          <option value="commute">Shortest commute first</option>
+        </select>
+      </div>
+      <input type="text" id="filter-locality" placeholder="Filter by city or neighborhood..." style="flex:1; min-width:160px">
+      <button id="btn-fetch" class="btn btn-accent">Fetch now</button>
+    </div>
+
+    <div id="feed-context" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;height:18px"></div>
+
+    <div id="card-grid"></div>
+
+    <div id="pagination"></div>
+
+    <div id="empty-state" style="display:none; text-align:center; padding:80px 0; color:var(--text-muted)">
+      No listings match your criteria yet. Try "Fetch now" or adjust your search profiles.
+    </div>
+  </div>
+
+  <div class="section" id="section-saved">
+    <div id="saved-bar" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="pill-group" id="saved-status-filter">
+        <span class="pill active" data-status="all">All</span>
+        <span class="pill" data-status="interested">Interested</span>
+        <span class="pill" data-status="visited">Visited</span>
+        <span class="pill" data-status="contacted">Contacted</span>
+        <span class="pill" data-status="rejected">Rejected</span>
+      </div>
+      <select id="saved-sort">
+        <option value="date">Saved date</option>
+        <option value="score">Score</option>
+        <option value="price_asc">Price ↑</option>
+        <option value="price_desc">Price ↓</option>
+      </select>
+      <span id="saved-count" style="color:var(--text-muted);font-size:13px">0 saved listings</span>
+      <button id="btn-export-csv" class="btn" style="margin-left:auto">Export CSV</button>
+    </div>
+
+    <div id="saved-table">
+      <div class="saved-row saved-head">
+        <div class="c-thumb"></div>
+        <div class="c-title">Title / Locality</div>
+        <div class="c-price">Price</div>
+        <div class="c-score">Score</div>
+        <div class="c-status">Status</div>
+        <div class="c-notes">Notes</div>
+        <div class="c-actions">Actions</div>
+      </div>
+      <div id="saved-rows"></div>
+    </div>
+
+    <div id="saved-empty" style="display:none;text-align:center;padding:80px 0;color:var(--text-muted)">
+      No saved listings yet. Save listings from the Feed to track them here.
+    </div>
+  </div>
+
+</div>
+
+<div id="status-bar">
+  <span id="sb-last">Last check: –</span>
+  <span>·</span>
+  <span id="sb-tracked">Tracked: 0</span>
+  <span>·</span>
+  <span id="sb-new">New today: 0</span>
+  <span>·</span>
+  <span id="sb-sched">Scheduler: –</span>
+</div>
+
+<div id="panel-scrim"></div>
+<div id="detail-panel"></div>
+
+<script>
+function proxyImg(url) {
+  if (!url) return '';
+  // Local cached images served directly
+  if (url.startsWith('/static/')) return url;
+  // Sreality CDN – load directly so browser uses its own cookies
+  if (url.includes('sdn.cz')) return url;
+  // Other sources through proxy
+  return '/api/image-proxy?url=' + encodeURIComponent(url);
+}
+
+function noPhotoHtml(source) {
+  const sourceLabels = {
+    'sreality': 'Sreality',
+    'bezrealitky': 'Bezrealitky',
+    'expats': 'Expats.cz'
+  };
+  const label = sourceLabels[source] || source;
+  return `
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:4px;
+      background:linear-gradient(145deg,var(--surface-2) 0%,var(--surface) 100%)">
+      <div style="font-size:26px;opacity:0.25">🏠</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;
+        color:var(--text-muted);text-transform:uppercase;opacity:0.5">${label}</div>
+    </div>`;
+}
+
+function setSaveButtonState(btnId, state) {
+  // state: 'saved' | 'dirty'
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (state === 'saved') {
+    btn.textContent = 'Saved ✓';
+    btn.style.opacity = '0.45';
+    btn.style.pointerEvents = 'none';
+    btn.style.cursor = 'default';
+  } else {
+    btn.textContent = btn.dataset.label || btn.textContent.replace('Saved ✓', '').trim() || 'Save';
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.style.cursor = 'pointer';
+  }
+}
+
+Chart.defaults.color = '#6b6b6b';
+Chart.defaults.borderColor = '#1c2f50';
+
+let priceChart = null;
+let activityChart = null;
+let tomChart = null;
+let dowChart = null;
+
+let currentPage = 1;
+let totalPages = 1;
+let currentEditingId = null;
+let _profileMode = 'none'; // 'none' | 'view' | 'edit' | 'new'
+let statusInterval = null;
+let fetching = false;
+let localityTimer = null;
+let lastListings = [];
+let profiles = [];
+let feedLoaded = false;
+
+const CITIES = [
+  'Praha', 'Brno', 'Ostrava', 'Plzeň', 'Liberec', 'Olomouc',
+  'České Budějovice', 'Hradec Králové', 'Pardubice', 'Zlín',
+  'Mladá Boleslav', 'Karlovy Vary', 'Jihlava', 'Ústí nad Labem', 'Opava'
+];
+
+const PRAHA_DISTRICTS = [
+  'Praha 1', 'Praha 2', 'Praha 3', 'Praha 4', 'Praha 5',
+  'Praha 6', 'Praha 7', 'Praha 8', 'Praha 9', 'Praha 10',
+  'Praha 11', 'Praha 12', 'Praha 13', 'Praha 14', 'Praha 15',
+  'Praha 16', 'Praha 17', 'Praha 18', 'Praha 19', 'Praha 20',
+  'Praha 21', 'Praha 22'
+];
+
+const PRAHA_NEIGHBORHOODS = [
+  // Praha 1
+  'Staré Město', 'Nové Město', 'Malá Strana', 'Hradčany', 'Josefov',
+  // Praha 2–3
+  'Vinohrady', 'Nusle', 'Žižkov',
+  // Praha 4
+  'Michle', 'Krč', 'Podolí', 'Braník', 'Hodkovičky',
+  // Praha 5
+  'Smíchov', 'Košíře', 'Radlice', 'Motol', 'Jinonice', 'Hlubočepy', 'Zbraslav',
+  // Praha 6
+  'Dejvice', 'Bubeneč', 'Střešovice', 'Břevnov', 'Veleslavín', 'Vokovice', 'Ruzyně', 'Řepy',
+  // Praha 7
+  'Holešovice', 'Letná', 'Troja',
+  // Praha 8
+  'Karlín', 'Libeň', 'Kobylisy', 'Bohnice', 'Čimice', 'Ďáblice',
+  // Praha 9
+  'Vysočany', 'Prosek', 'Hloubětín', 'Kyje',
+  // Praha 10
+  'Vršovice', 'Strašnice', 'Záběhlice', 'Hostivař', 'Malešice',
+  // Praha 11–22
+  'Chodov', 'Háje', 'Modřany', 'Komořany', 'Stodůlky', 'Lužiny',
+  'Zličín', 'Černý Most', 'Letňany', 'Horní Počernice', 'Újezd nad Lesy'
+];
+
+const DISTRICT_TO_SELECTION = {
+  'Praha 1':  { neighborhoods: ['Staré Město','Nové Město','Malá Strana','Hradčany','Josefov'],
+                metro: ['Staroměstská','Malostranská','Hradčanská','Můstek A','Muzeum A','Národní třída','Můstek B','Náměstí Republiky','Florenc B','Florenc C','Hlavní nádraží','Muzeum C'] },
+  'Praha 2':  { neighborhoods: ['Vinohrady','Nusle'],
+                metro: ['Náměstí Míru','I.P. Pavlova','Vyšehrad'] },
+  'Praha 3':  { neighborhoods: ['Žižkov'],
+                metro: ['Jiřího z Poděbrad','Flora','Želivského'] },
+  'Praha 4':  { neighborhoods: ['Michle','Krč','Podolí','Braník','Hodkovičky'],
+                metro: ['Pankrác','Budějovická','Kačerov'] },
+  'Praha 5':  { neighborhoods: ['Smíchov','Košíře','Radlice','Motol','Jinonice','Hlubočepy','Zbraslav'],
+                metro: ['Smíchovské nádraží','Anděl','Radlická','Jinonice'] },
+  'Praha 6':  { neighborhoods: ['Dejvice','Bubeneč','Střešovice','Břevnov','Veleslavín','Vokovice','Ruzyně','Řepy'],
+                metro: ['Dejvická','Hradčanská','Nádraží Veleslavín','Bořislavka','Petřiny','Nemocnice Motol'] },
+  'Praha 7':  { neighborhoods: ['Holešovice','Letná','Troja'],
+                metro: ['Nádraží Holešovice','Vltavská'] },
+  'Praha 8':  { neighborhoods: ['Karlín','Libeň','Kobylisy','Bohnice','Čimice','Ďáblice'],
+                metro: ['Florenc B','Křižíkova','Invalidovna','Palmovka','Českomoravská','Kobylisy','Ládví'] },
+  'Praha 9':  { neighborhoods: ['Vysočany','Prosek','Hloubětín','Kyje'],
+                metro: ['Vysočanská','Kolbenova','Hloubětín','Prosek'] },
+  'Praha 10': { neighborhoods: ['Vršovice','Strašnice','Záběhlice','Hostivař','Malešice'],
+                metro: ['Strašnická','Skalka','Depo Hostivař'] },
+  'Praha 11': { neighborhoods: ['Chodov','Háje'],
+                metro: ['Chodov','Opatov','Háje','Roztyly'] },
+  'Praha 12': { neighborhoods: ['Modřany','Komořany'], metro: [] },
+  'Praha 13': { neighborhoods: ['Stodůlky','Lužiny'],
+                metro: ['Stodůlky','Lužiny','Hůrka','Nové Butovice','Luka','Zličín'] },
+  'Praha 14': { neighborhoods: ['Černý Most'], metro: ['Černý Most','Rajská zahrada'] },
+  'Praha 18': { neighborhoods: ['Letňany'], metro: ['Letňany'] },
+  'Praha 20': { neighborhoods: ['Horní Počernice'], metro: [] },
+  'Praha 21': { neighborhoods: ['Újezd nad Lesy'], metro: [] },
+};
+
+const DISTRICT_CENTERS = {
+  'Praha 1':  [50.0874, 14.4213],
+  'Praha 2':  [50.0718, 14.4336],
+  'Praha 3':  [50.0839, 14.4600],
+  'Praha 4':  [50.0419, 14.4410],
+  'Praha 5':  [50.0637, 14.3892],
+  'Praha 6':  [50.1041, 14.3820],
+  'Praha 7':  [50.1038, 14.4346],
+  'Praha 8':  [50.1137, 14.4667],
+  'Praha 9':  [50.1191, 14.5147],
+  'Praha 10': [50.0580, 14.4900],
+  'Praha 11': [50.0245, 14.4803],
+  'Praha 12': [50.0037, 14.4133],
+  'Praha 13': [50.0478, 14.3050],
+  'Praha 14': [50.1041, 14.5502],
+  'Praha 15': [50.0397, 14.5291],
+  'Praha 16': [49.9878, 14.3600],
+  'Praha 17': [50.0812, 14.2897],
+  'Praha 18': [50.1413, 14.5050],
+  'Praha 19': [50.1291, 14.4133],
+  'Praha 20': [50.1089, 14.5680],
+  'Praha 21': [50.0896, 14.6103],
+  'Praha 22': [50.0313, 14.6180],
+};
+
+const METRO_LINES = {
+  A: ['Nemocnice Motol','Petřiny','Nádraží Veleslavín','Bořislavka','Dejvická',
+      'Hradčanská','Malostranská','Staroměstská','Můstek A','Muzeum A',
+      'Náměstí Míru','Jiřího z Poděbrad','Flora','Želivského',
+      'Strašnická','Skalka','Depo Hostivař'],
+  B: ['Zličín','Stodůlky','Luka','Lužiny','Hůrka','Nové Butovice','Jinonice',
+      'Radlická','Smíchovské nádraží','Anděl','Karlovo náměstí','Národní třída',
+      'Můstek B','Náměstí Republiky','Florenc B','Křižíkova','Invalidovna',
+      'Palmovka','Českomoravská','Vysočanská','Kolbenova','Hloubětín',
+      'Rajská zahrada','Černý Most'],
+  C: ['Letňany','Prosek','Ládví','Kobylisy','Nádraží Holešovice','Vltavská',
+      'Florenc C','Hlavní nádraží','Muzeum C','I.P. Pavlova','Vyšehrad',
+      'Pankrác','Budějovická','Kačerov','Roztyly','Chodov','Opatov','Háje']
+};
+
+// Maps metro stop → neighborhood strings that appear in sreality locality fields
+const METRO_TO_LOCALITY = {
+  'Nemocnice Motol': ['Motol'],
+  'Petřiny': ['Petřiny'],
+  'Nádraží Veleslavín': ['Veleslavín'],
+  'Bořislavka': ['Dejvice'],
+  'Dejvická': ['Dejvice'],
+  'Hradčanská': ['Hradčany'],
+  'Malostranská': ['Malá Strana'],
+  'Staroměstská': ['Staré Město'],
+  'Můstek A': ['Nové Město'],
+  'Muzeum A': ['Vinohrady'],
+  'Náměstí Míru': ['Vinohrady'],
+  'Jiřího z Poděbrad': ['Vinohrady', 'Žižkov'],
+  'Flora': ['Žižkov'],
+  'Želivského': ['Žižkov'],
+  'Strašnická': ['Strašnice'],
+  'Skalka': ['Strašnice'],
+  'Depo Hostivař': ['Hostivař'],
+  'Zličín': ['Zličín'],
+  'Stodůlky': ['Stodůlky'],
+  'Luka': ['Luka'],
+  'Lužiny': ['Lužiny'],
+  'Hůrka': ['Hůrka'],
+  'Nové Butovice': ['Nové Butovice'],
+  'Jinonice': ['Jinonice'],
+  'Radlická': ['Radlice'],
+  'Smíchovské nádraží': ['Smíchov'],
+  'Anděl': ['Smíchov'],
+  'Karlovo náměstí': ['Nové Město'],
+  'Národní třída': ['Nové Město'],
+  'Můstek B': ['Nové Město'],
+  'Náměstí Republiky': ['Nové Město'],
+  'Florenc B': ['Karlín'],
+  'Křižíkova': ['Karlín'],
+  'Invalidovna': ['Karlín'],
+  'Palmovka': ['Libeň'],
+  'Českomoravská': ['Vysočany'],
+  'Vysočanská': ['Vysočany'],
+  'Kolbenova': ['Vysočany'],
+  'Hloubětín': ['Hloubětín'],
+  'Rajská zahrada': ['Černý Most'],
+  'Černý Most': ['Černý Most'],
+  'Letňany': ['Letňany'],
+  'Prosek': ['Prosek'],
+  'Ládví': ['Kobylisy'],
+  'Kobylisy': ['Kobylisy'],
+  'Nádraží Holešovice': ['Holešovice'],
+  'Vltavská': ['Holešovice'],
+  'Florenc C': ['Karlín'],
+  'Hlavní nádraží': ['Nové Město'],
+  'Muzeum C': ['Vinohrady'],
+  'I.P. Pavlova': ['Nusle'],
+  'Vyšehrad': ['Nusle'],
+  'Pankrác': ['Pankrác'],
+  'Budějovická': ['Krč'],
+  'Kačerov': ['Krč'],
+  'Roztyly': ['Chodov'],
+  'Chodov': ['Chodov'],
+  'Opatov': ['Háje'],
+  'Háje': ['Háje'],
+};
+
+// Reverse map: locality keyword → metro stop names (for restoring state from DB)
+const LOCALITY_TO_METRO = {};
+Object.entries(METRO_TO_LOCALITY).forEach(([stop, localities]) => {
+  localities.forEach(loc => {
+    if (!LOCALITY_TO_METRO[loc]) LOCALITY_TO_METRO[loc] = [];
+    LOCALITY_TO_METRO[loc].push(stop);
+  });
+});
+
+const LINE_COLORS = { A: '#4ade80', B: '#fbbf24', C: '#f87171' };
+
+const CITY_CENTERS = {
+  'Brno': [49.1951, 16.6068],
+  'Ostrava': [49.8209, 18.2625],
+  'Plzeň': [49.7384, 13.3736],
+  'Liberec': [50.7663, 15.0543],
+  'Olomouc': [49.5938, 17.2509],
+  'České Budějovice': [48.9745, 14.4744],
+  'Hradec Králové': [50.2092, 15.8328],
+  'Pardubice': [50.0343, 15.7812],
+  'Zlín': [49.2237, 17.6621],
+  'Mladá Boleslav': [50.4156, 14.9069],
+  'Karlovy Vary': [50.2332, 12.8718],
+  'Jihlava': [49.3961, 15.5896],
+  'Ústí nad Labem': [50.6607, 14.0323],
+  'Opava': [49.9387, 17.9006],
+};
+
+const DISTANCE_OPTIONS = [0.5, 1, 1.5, 2, 3, 5];
+
+const PARK_DISTANCE_OPTIONS = [0.3, 0.5, 1, 1.5, 2];
+let selectedParkMaxKm = 0;
+
+let selectedChains = new Set();
+let selectedMaxKm = 0;
+
+let selectedCities = new Set();
+let selectedDistricts = new Set();
+let selectedMetroStops = new Set();
+let selectedNeighborhoods = new Set();
+
+const ROOM_TYPES = ['Studio', '1+kk', '1+1', '2+kk', '2+1', '3+kk', '3+1', '4+kk', '4+1', '5+'];
+const FURNISHED_OPTIONS = [
+  { value: 'any', label: 'Any' },
+  { value: 'furnished', label: 'Furnished' },
+  { value: 'partial', label: 'Partially' },
+  { value: 'unfurnished', label: 'Unfurnished' },
+];
+const BUILDING_AGE_OPTIONS = [
+  { value: 'any', label: 'Any' },
+  { value: 'new', label: 'New build' },
+  { value: 'modern', label: 'Modern' },
+  { value: 'renovated', label: 'Renovated' },
+  { value: 'old', label: 'Character building' },
+];
+
+let selectedRoomTypes = new Set();
+let selectedFurnished = new Set();
+let selectedBuildingAge = new Set();
+
+function buildPills(container, items, selectedSet, onToggle) {
+  container.innerHTML = '';
+  items.forEach(item => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = item;
+    pill.style.cssText = `
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; cursor: pointer;
+      border: 1px solid var(--border); background: none; color: var(--text-muted);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    `;
+    if (selectedSet.has(item)) {
+      pill.style.background = 'var(--vivid)';
+      pill.style.color = '#fff';
+      pill.style.borderColor = 'var(--vivid)';
+    }
+    pill.addEventListener('click', () => {
+      if (selectedSet.has(item)) {
+        selectedSet.delete(item);
+        pill.style.background = 'none';
+        pill.style.color = 'var(--text-muted)';
+        pill.style.borderColor = 'var(--border)';
+      } else {
+        selectedSet.add(item);
+        pill.style.background = 'var(--vivid)';
+        pill.style.color = '#fff';
+        pill.style.borderColor = 'var(--vivid)';
+      }
+      onToggle();
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderCitySelector() {
+  const container = document.getElementById('city-selector');
+  container.innerHTML = '';
+  CITIES.forEach(city => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = city;
+    pill.style.cssText = `
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; cursor: pointer;
+      border: 1px solid var(--border); background: none; color: var(--text-muted);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    `;
+    const applyActive = () => {
+      pill.style.background = 'var(--vivid)';
+      pill.style.color = '#fff';
+      pill.style.borderColor = 'var(--vivid)';
+    };
+    const applyInactive = () => {
+      pill.style.background = 'none';
+      pill.style.color = 'var(--text-muted)';
+      pill.style.borderColor = 'var(--border)';
+    };
+    if (selectedCities.has(city)) applyActive();
+
+    pill.addEventListener('click', () => {
+      if (selectedCities.has(city)) {
+        selectedCities.delete(city);
+        applyInactive();
+      } else {
+        selectedCities.add(city);
+        applyActive();
+      }
+
+      const showPraha = selectedCities.has('Praha');
+      document.getElementById('praha-district-section').style.display = showPraha ? 'block' : 'none';
+      if (!showPraha) selectedDistricts.clear();
+      renderDistrictSelector();
+      renderMetroSelector();
+      if (!showPraha) selectedMetroStops.clear();
+      renderNeighborhoodSelector();
+      if (!showPraha) selectedNeighborhoods.clear();
+
+      const center = CITY_CENTERS[city] || (city === 'Praha' ? [50.0755, 14.4378] : null);
+      if (center && selectedCities.has(city)) fetchNearbySupers(center[0], center[1]);
+      if (center && selectedCities.has(city)) fetchNearbyParks(center[0], center[1]);
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderDistrictSelector() {
+  const container = document.getElementById('district-selector');
+  container.innerHTML = '';
+  PRAHA_DISTRICTS.forEach(district => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = district;
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid var(--border);background:none;color:var(--text-muted);
+      transition:background 0.15s,color 0.15s,border-color 0.15s;
+    `;
+    const applyActive = () => {
+      pill.style.background = 'var(--vivid)';
+      pill.style.color = '#fff';
+      pill.style.borderColor = 'var(--vivid)';
+    };
+    const applyInactive = () => {
+      pill.style.background = 'none';
+      pill.style.color = 'var(--text-muted)';
+      pill.style.borderColor = 'var(--border)';
+    };
+    if (selectedDistricts.has(district)) applyActive();
+
+    pill.addEventListener('click', () => {
+      if (selectedDistricts.has(district)) {
+        selectedDistricts.delete(district);
+        applyInactive();
+      } else {
+        selectedDistricts.add(district);
+        applyActive();
+        // Cascade: auto-select related neighborhoods and metro stops
+        const mapping = DISTRICT_TO_SELECTION[district];
+        if (mapping) {
+          mapping.neighborhoods.forEach(n => selectedNeighborhoods.add(n));
+          mapping.metro.forEach(s => selectedMetroStops.add(s));
+          renderNeighborhoodSelector();
+          renderMetroSelector();
+        }
+        // Automatically fetch supermarkets near this district's center
+        const center = DISTRICT_CENTERS[district];
+        if (center) fetchNearbySupers(center[0], center[1]);
+        if (center) fetchNearbyParks(center[0], center[1]);
+      }
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderNeighborhoodSelector() {
+  buildPills(
+    document.getElementById('neighborhood-selector'),
+    PRAHA_NEIGHBORHOODS,
+    selectedNeighborhoods,
+    () => {}
+  );
+}
+
+function renderMetroSelector() {
+  const container = document.getElementById('metro-selector');
+  container.innerHTML = '';
+  ['A', 'B', 'C'].forEach(line => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px';
+
+    const lineBtn = document.createElement('button');
+    lineBtn.type = 'button';
+    lineBtn.textContent = `● ${line}`;
+    lineBtn.title = `Select all line ${line} stops`;
+    lineBtn.style.cssText = `
+      font-size:11px;font-weight:700;color:${LINE_COLORS[line]};
+      min-width:28px;padding:4px 6px;flex-shrink:0;
+      background:none;border:1px solid transparent;
+      border-radius:var(--radius);cursor:pointer;
+      transition:border-color 0.15s,background 0.15s;
+      align-self:flex-start;margin-top:2px;
+    `;
+    lineBtn.addEventListener('mouseenter', () => {
+      lineBtn.style.borderColor = LINE_COLORS[line];
+      lineBtn.style.background = `${LINE_COLORS[line]}18`;
+    });
+    lineBtn.addEventListener('mouseleave', () => {
+      const allSelected = METRO_LINES[line].every(s => selectedMetroStops.has(s));
+      lineBtn.style.borderColor = allSelected ? LINE_COLORS[line] : 'transparent';
+      lineBtn.style.background = allSelected ? `${LINE_COLORS[line]}18` : 'none';
+    });
+    lineBtn.addEventListener('click', () => {
+      const allSelected = METRO_LINES[line].every(s => selectedMetroStops.has(s));
+      if (allSelected) {
+        // Deselect all stops on this line
+        METRO_LINES[line].forEach(s => selectedMetroStops.delete(s));
+      } else {
+        // Select all stops on this line
+        METRO_LINES[line].forEach(s => selectedMetroStops.add(s));
+      }
+      renderMetroSelector();
+      setSaveButtonState('btn-save-profile', 'dirty');
+    });
+
+    // Apply persistent active state if all stops are selected
+    const allSelected = METRO_LINES[line].every(s => selectedMetroStops.has(s));
+    if (allSelected) {
+      lineBtn.style.borderColor = LINE_COLORS[line];
+      lineBtn.style.background = `${LINE_COLORS[line]}18`;
+    }
+
+    row.appendChild(lineBtn);
+
+    const pillWrap = document.createElement('div');
+    pillWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px';
+    buildPills(pillWrap, METRO_LINES[line], selectedMetroStops, () => {});
+    row.appendChild(pillWrap);
+    container.appendChild(row);
+  });
+}
+
+function renderRoomTypeSelector() {
+  const container = document.getElementById('room-type-selector');
+  container.innerHTML = '';
+  ROOM_TYPES.forEach(rt => {
+    const key = rt.toLowerCase().replace('studio', 'studio');
+    const active = selectedRoomTypes.has(rt.toLowerCase()) || selectedRoomTypes.has(rt);
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = rt;
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--vivid)' : 'var(--border)'};
+      background:${active ? 'var(--vivid)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+    `;
+    pill.addEventListener('click', () => {
+      const val = rt.toLowerCase();
+      if (selectedRoomTypes.has(val)) {
+        selectedRoomTypes.delete(val);
+        pill.style.background = 'none'; pill.style.color = 'var(--text-muted)'; pill.style.borderColor = 'var(--border)';
+      } else {
+        selectedRoomTypes.add(val);
+        pill.style.background = 'var(--vivid)'; pill.style.color = '#fff'; pill.style.borderColor = 'var(--vivid)';
+      }
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderSingleSelectPills(containerId, options, currentVal, onChange) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = opt.label;
+    const active = currentVal === opt.value;
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--vivid)' : 'var(--border)'};
+      background:${active ? 'var(--vivid)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+    `;
+    pill.addEventListener('click', () => {
+      onChange(opt.value);
+      renderSingleSelectPills(containerId, options, opt.value, onChange);
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderMultiSelectPills(containerId, options, selectedSet, noneValue) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = opt.label;
+    const active = opt.value === noneValue
+      ? selectedSet.size === 0
+      : selectedSet.has(opt.value);
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--vivid)' : 'var(--border)'};
+      background:${active ? 'var(--vivid)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+    `;
+    pill.addEventListener('click', () => {
+      if (opt.value === noneValue) {
+        selectedSet.clear();
+      } else if (selectedSet.has(opt.value)) {
+        selectedSet.delete(opt.value);
+      } else {
+        selectedSet.add(opt.value);
+      }
+      renderMultiSelectPills(containerId, options, selectedSet, noneValue);
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderChainSelector(nearbyChains) {
+  // nearbyChains: array of {chain, distance_km} from fetch-area, or null
+  const container = document.getElementById('chain-selector');
+  container.innerHTML = '';
+
+  if (!nearbyChains) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">Select a city or district to see nearby supermarkets.</span>';
+    return;
+  }
+  if (nearbyChains.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">No major supermarkets found within 3 km of this area.</span>';
+    return;
+  }
+
+  nearbyChains.forEach(item => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    const distLabel = item.distance_km < 1
+      ? `${Math.round(item.distance_km * 1000)}m`
+      : `${item.distance_km}km`;
+    pill.textContent = `${item.chain} · ${distLabel}`;
+    const active = selectedChains.has(item.chain);
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--vivid)' : 'var(--border)'};
+      background:${active ? 'var(--vivid)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+      transition:background 0.15s,color 0.15s,border-color 0.15s;
+    `;
+    pill.addEventListener('click', () => {
+      if (selectedChains.has(item.chain)) {
+        selectedChains.delete(item.chain);
+        pill.style.background = 'none';
+        pill.style.color = 'var(--text-muted)';
+        pill.style.borderColor = 'var(--border)';
+      } else {
+        selectedChains.add(item.chain);
+        pill.style.background = 'var(--vivid)';
+        pill.style.color = '#fff';
+        pill.style.borderColor = 'var(--vivid)';
+      }
+      renderDistancePicker();
+    });
+    container.appendChild(pill);
+  });
+  renderDistancePicker();
+}
+
+let superFetchController = null;
+
+async function fetchNearbySupers(lat, lng) {
+  if (superFetchController) superFetchController.abort();
+  superFetchController = new AbortController();
+
+  const container = document.getElementById('chain-selector');
+  container.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">Loading nearby supermarkets…</span>';
+
+  try {
+    const resp = await fetch(
+      `/api/supermarkets/fetch-area?lat=${lat}&lng=${lng}&km=3`,
+      { signal: superFetchController.signal }
+    );
+    const data = await resp.json();
+    renderChainSelector(data);
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      container.innerHTML = '<span style="font-size:12px;color:var(--score-red)">Could not load supermarkets – check your connection.</span>';
+    }
+  }
+}
+
+function renderDistancePicker() {
+  const section = document.getElementById('distance-picker');
+  section.style.display = selectedChains.size > 0 ? 'block' : 'none';
+  if (selectedChains.size === 0) return;
+
+  const container = document.getElementById('distance-pills');
+  container.innerHTML = '';
+  DISTANCE_OPTIONS.forEach(km => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = km < 1 ? `${km * 1000}m` : `${km} km`;
+    const active = selectedMaxKm === km;
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};
+      background:${active ? 'var(--accent)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+    `;
+    pill.addEventListener('click', () => {
+      selectedMaxKm = active ? 0 : km;
+      renderDistancePicker();
+    });
+    container.appendChild(pill);
+  });
+}
+
+function renderParkDistancePicker() {
+  const container = document.getElementById('park-distance-pills');
+  if (!container) return;
+  container.innerHTML = '';
+  PARK_DISTANCE_OPTIONS.forEach(km => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = km < 1
+      ? `${Math.round(km * 1000)}m`
+      : `${km} km`;
+    const active = selectedParkMaxKm === km;
+    pill.style.cssText = `
+      padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+      border:1px solid ${active ? 'var(--vivid)' : 'var(--border)'};
+      background:${active ? 'var(--vivid)' : 'none'};
+      color:${active ? '#fff' : 'var(--text-muted)'};
+      transition:background 0.15s,color 0.15s,border-color 0.15s;
+    `;
+    pill.addEventListener('click', () => {
+      selectedParkMaxKm = active ? 0 : km;
+      renderParkDistancePicker();
+      setSaveButtonState('btn-save-profile', 'dirty');
+    });
+    container.appendChild(pill);
+  });
+  document.getElementById('park-distance-picker').style.display =
+    selectedParkMaxKm > 0 ? 'block' : 'none';
+}
+
+let parkFetchController = null;
+
+async function fetchNearbyParks(lat, lng) {
+  if (parkFetchController) parkFetchController.abort();
+  parkFetchController = new AbortController();
+
+  const status = document.getElementById('park-status');
+  const list = document.getElementById('park-list');
+  if (status) status.textContent = 'Loading nearby parks…';
+  if (list) list.innerHTML = '';
+
+  try {
+    const resp = await fetch(
+      `/api/parks/fetch-area?lat=${lat}&lng=${lng}&km=2`,
+      { signal: parkFetchController.signal }
+    );
+    const parks = await resp.json();
+
+    if (!parks.length) {
+      if (status) status.textContent = 'No parks found within 2 km.';
+      return;
+    }
+
+    if (status) status.textContent = `${parks.length} park${parks.length !== 1 ? 's' : ''} within 2 km.`;
+    if (list) {
+      list.innerHTML = parks.map(p => {
+        const distLabel = p.distance_km < 1
+          ? `${Math.round(p.distance_km * 1000)}m`
+          : `${p.distance_km}km`;
+        const parkName = (p.name && p.name !== 'Park') ? p.name : 'Green space';
+        return `<div style="padding:3px 0;display:flex;justify-content:space-between">
+          <span>${escapeHtml(parkName)}</span>
+          <span style="color:var(--score-green)">${distLabel}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Show distance picker if parks exist
+    document.getElementById('park-distance-picker').style.display = 'block';
+    renderParkDistancePicker();
+
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      if (status) status.textContent = 'Could not load parks.';
+    }
+  }
+}
+
+function getSelectedDistricts() {
+  const result = new Set();
+  selectedCities.forEach(city => {
+    if (city === 'Praha') {
+      selectedDistricts.forEach(d => result.add(d));
+      selectedNeighborhoods.forEach(n => result.add(n));
+      selectedMetroStops.forEach(stop => {
+        (METRO_TO_LOCALITY[stop] || []).forEach(n => result.add(n));
+      });
+      if (selectedDistricts.size === 0 && selectedNeighborhoods.size === 0 && selectedMetroStops.size === 0) {
+        result.add('Praha');
+      }
+    } else {
+      result.add(city);
+    }
+  });
+  return [...result];
+}
+
+function setDistrictsFromProfile(p) {
+  // Restore directly from stored selection state – no reverse-mapping
+  selectedCities = new Set(JSON.parse(p.selected_cities || '[]'));
+  selectedNeighborhoods = new Set(JSON.parse(p.selected_neighborhoods || '[]'));
+  selectedMetroStops = new Set(JSON.parse(p.metro_stops || '[]'));
+
+  // Praha districts: extract from districts array (only items in PRAHA_DISTRICTS)
+  selectedDistricts = new Set();
+  try {
+    const districts = Array.isArray(p.districts) ? p.districts : JSON.parse(p.districts || '[]');
+    districts.forEach(d => {
+      if (PRAHA_DISTRICTS.includes(d)) selectedDistricts.add(d);
+    });
+  } catch(e) {}
+
+  renderCitySelector();
+  const showPraha = selectedCities.has('Praha');
+  document.getElementById('praha-district-section').style.display =
+    showPraha ? 'block' : 'none';
+  if (showPraha) {
+    renderDistrictSelector();
+    renderNeighborhoodSelector();
+    renderMetroSelector();
+  }
+}
+
+function fmtInt(n) {
+  return (n || 0).toLocaleString('en-US').replace(/,/g, ' ');
+}
+
+function scoreColor(score) {
+  if (score >= 80) return 'var(--score-green)';
+  if (score >= 60) return 'var(--score-amber)';
+  return 'var(--score-red)';
+}
+
+function timeAgo(iso) {
+  if (!iso) return '–';
+  let t = iso;
+  if (!t.endsWith('Z') && !t.includes('+')) t = t.replace(' ', 'T') + 'Z';
+  const then = new Date(t).getTime();
+  if (isNaN(then)) return '–';
+  const mins = Math.floor((Date.now() - then) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  return new Date(t).toLocaleDateString();
+}
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('section-' + name);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.section === name);
+  });
+  if (name === 'saved') loadSaved();
+  if (name === 'settings') loadSettingsSection();
+  if (name === 'log') loadLogSection();
+  if (name === 'insights') loadInsights();
+  if (name === 'feed' && !feedLoaded) {
+    feedLoaded = true;
+    loadFeed();
+  }
+  history.replaceState(null, '', '#' + name);
+}
+
+document.querySelectorAll('.nav-btn').forEach(b => {
+  b.addEventListener('click', () => showSection(b.dataset.section));
+});
+
+document.querySelector('.wordmark').style.cursor = 'pointer';
+document.querySelector('.wordmark').addEventListener('click', () => showSection('feed'));
+
+function getPageRange(current, total) {
+  const delta = 2;
+  const range = new Set([1, total]);
+  for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+    range.add(i);
+  }
+  return [...range].sort((a, b) => a - b);
+}
+
+function renderPagination(total, perPage, current) {
+  const pages = Math.ceil(total / perPage) || 1;
+  totalPages = pages;
+  const container = document.getElementById('pagination');
+  if (pages <= 1) { container.innerHTML = ''; return; }
+
+  const range = getPageRange(current, pages);
+  let html = `<button class="page-btn" onclick="goToPage(${current - 1})"
+    ${current === 1 ? 'disabled' : ''}>←</button>`;
+
+  let prev = 0;
+  for (const p of range) {
+    if (p - prev > 1) {
+      html += `<span style="color:var(--text-muted);padding:0 2px;font-size:13px">…</span>`;
+    }
+    html += `<button class="page-btn ${p === current ? 'active' : ''}"
+      onclick="goToPage(${p})">${p}</button>`;
+    prev = p;
+  }
+
+  html += `<button class="page-btn" onclick="goToPage(${current + 1})"
+    ${current === pages ? 'disabled' : ''}>→</button>`;
+
+  container.innerHTML = html;
+}
+
+function goToPage(page) {
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  loadFeed();
+  document.getElementById('card-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadFeed() {
+  const profileId = document.getElementById('filter-profile').value;
+  const type = document.getElementById('filter-type').value;
+  const sort = document.getElementById('filter-sort').value;
+  const locality = document.getElementById('filter-locality').value.trim();
+  const params = new URLSearchParams();
+  if (profileId) params.set('profile_id', profileId);
+  if (type) params.set('listing_type', type);
+  if (locality) params.set('locality', locality);
+  params.set('sort', sort);
+  params.set('page', currentPage);
+  params.set('per_page', 24);
+
+  try {
+    const res = await fetch('/api/feed?' + params.toString());
+    const data = await res.json();
+    lastListings = data.listings;
+    const grid = document.getElementById('card-grid');
+    grid.innerHTML = '';
+    data.listings.forEach(l => grid.appendChild(renderCard(l)));
+
+    renderPagination(data.total, 24, currentPage);
+
+    // Mark all rendered listings as seen
+    const renderedIds = [...document.querySelectorAll('.card[data-id]')]
+      .map(c => c.dataset.id);
+    if (renderedIds.length) {
+      const profileId = document.getElementById('filter-profile').value;
+      fetch('/api/listings/seen-batch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          hash_ids: renderedIds,
+          profile_id: profileId ? parseInt(profileId) : null,
+        })
+      });
+      // Fire and forget – don't await, don't block the UI
+    }
+
+    document.getElementById('empty-state').style.display = data.total === 0 ? 'block' : 'none';
+
+    const total = data.total;
+    const profileSelect = document.getElementById('filter-profile');
+    const selectedOption = profileSelect.options[profileSelect.selectedIndex];
+    const contextEl = document.getElementById('feed-context');
+    if (profileSelect.value) {
+      const threshold = profiles.find(p => p.id === parseInt(profileSelect.value))?.score_threshold ?? 60;
+      contextEl.textContent = `${total} listings matching "${selectedOption.text}" · score ≥ ${threshold}`;
+    } else {
+      contextEl.textContent = total > 0 ? `${total} listings · no filter active` : '';
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderCard(l) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.id = l.hash_id;
+  card.dataset.locality = (l.locality || '').toLowerCase();
+  card._listing = l;
+
+  const isRent = l.listing_type === 'rent';
+  const priceFormatted = l.price ? fmtInt(l.price) : 'Price on request';
+  const priceSuffix = isRent ? '/ mo' : '';
+  const floorStr = l.floor_number > 0 ? `<span>· Floor ${l.floor_number}</span>` : '';
+  const typeLabel = isRent ? 'Rent' : 'Buy';
+  const typeBg = isRent ? 'var(--tag-rent)' : 'var(--tag-buy)';
+  const sColor = scoreColor(l.score);
+
+  const isSaved = l.is_saved;
+  const heartBtn = `
+    <button class="btn-save heart-btn" data-id="${l.hash_id}"
+      data-saved="${isSaved ? '1' : '0'}"
+      title="${isSaved ? 'Remove from saved listings' : 'Save listing'}"
+      style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:20px;
+      padding:4px;line-height:1;transition:transform 0.1s">
+      ${isSaved ? '<span style="color:#ef4444">♥</span>' : '<span style="color:var(--text-muted)">♡</span>'}
+    </button>`;
+
+  const isSreality = l.source === 'sreality';
+  const hasLocalImg = l.image_url && l.image_url.startsWith('/static/');
+  const hasExternalImg = l.image_url && !isSreality && !hasLocalImg;
+
+  const commuteColor = !l.commute_walk_est ? 'var(--text-muted)'
+    : l.commute_walk_est <= 10 ? 'var(--score-green)'
+    : l.commute_walk_est <= 20 ? 'var(--score-amber)'
+    : 'var(--text-muted)';
+  const commuteBadge = l.commute_walk_est
+    ? `<div style="font-size:11px;color:${commuteColor};margin-top:4px">
+        🚶 ~${l.commute_walk_est} min walk to work
+        <span style="margin-left:4px;opacity:0.6">(${l.commute_km}km)</span>
+      </div>`
+    : '';
+
+  let photoHtml;
+  if (hasLocalImg || hasExternalImg) {
+    photoHtml = `
+      <img src="${proxyImg(l.image_url)}" loading="lazy"
+        style="width:100%;height:100%;object-fit:cover"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div style="display:none;width:100%;height:100%">
+        ${noPhotoHtml(l.source)}
+      </div>`;
+  } else {
+    // Sreality or no image – show placeholder immediately, no failed request
+    photoHtml = noPhotoHtml(l.source);
+  }
+
+  card.innerHTML = `
+    <div class="card-photo" style="position:relative; aspect-ratio:16/9; background:#1a1a1a; overflow:hidden">
+      ${photoHtml}
+      <div class="score-badge" style="position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:${sColor};color:#000;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center">${l.score}</div>
+      ${l.is_new ? `<div class="new-badge" style="position:absolute;top:8px;left:8px;background:var(--badge-new);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">NEW</div>` : ''}
+      ${l.price_drop ? `<div class="drop-badge" style="position:absolute;bottom:8px;left:8px;background:var(--badge-drop);color:#000;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px">↓ Price</div>` : ''}
+    </div>
+    <div class="card-body" style="padding:12px">
+      <div class="card-title" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">${escapeHtml(l.title || '')}</div>
+      <div class="card-locality" style="color:var(--text-muted);font-size:12px;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(l.locality || '')}</div>
+      <div class="card-price" style="font-size:18px;font-weight:700;margin-bottom:6px">
+        ${priceFormatted} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">${priceSuffix}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:10px">
+        <span>${l.size_m2} m²</span>
+        ${floorStr}
+        <span style="margin-left:auto;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:${typeBg};color:#fff">${typeLabel}</span>
+      </div>
+      ${commuteBadge}
+      ${l.room_type ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px"><span style="padding:2px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)">${escapeHtml(l.room_type)}</span></div>` : ''}
+      ${l.nearest_supermarket ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;margin-bottom:6px">🛒 ${escapeHtml(l.nearest_supermarket.chain)} ${l.nearest_supermarket.distance_km}km</div>` : ''}
+      <div class="card-actions" style="display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);padding-top:10px">
+        <a href="${l.url || '#'}" target="_blank" style="color:var(--accent);font-size:12px" onclick="event.stopPropagation()">View listing ↗</a>
+        ${heartBtn}
+        <button class="btn-hide" data-id="${l.hash_id}" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px" title="Not interested" onclick="event.stopPropagation()">✕</button>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+document.getElementById('card-grid').addEventListener('click', async (e) => {
+  const saveBtn = e.target.closest('.btn-save.heart-btn');
+  const hideBtn = e.target.closest('.btn-hide');
+  const card = e.target.closest('.card');
+
+  if (saveBtn) {
+    e.stopPropagation();
+    const hashId = saveBtn.dataset.id;
+    const wasSaved = saveBtn.dataset.saved === '1';
+
+    if (wasSaved) {
+      await fetch(`/api/listings/${encodeURIComponent(hashId)}/save`, { method: 'DELETE' });
+      saveBtn.dataset.saved = '0';
+      saveBtn.title = 'Save listing';
+      saveBtn.innerHTML = '<span style="color:var(--text-muted)">♡</span>';
+    } else {
+      await fetch(`/api/listings/${encodeURIComponent(hashId)}/save`, { method: 'POST' });
+      saveBtn.dataset.saved = '1';
+      saveBtn.title = 'Remove from saved listings';
+      saveBtn.innerHTML = '<span style="color:#ef4444">♥</span>';
+    }
+    if (card && card._listing) card._listing.is_saved = !wasSaved;
+    return;
+  }
+
+  if (hideBtn) {
+    const id = hideBtn.dataset.id;
+    await fetch(`/api/listings/${encodeURIComponent(id)}/hide`, { method: 'POST' });
+    if (card) {
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 200);
+    }
+    return;
+  }
+
+  if (card && card._listing) {
+    openDetail(card._listing);
+    fetch(`/api/listings/${encodeURIComponent(card._listing.hash_id)}/seen`, { method: 'POST' });
+  }
+});
+
+function activeProfileChains() {
+  const profId = parseInt(document.getElementById('filter-profile').value);
+  const prof = profiles.find(p => p.id === profId) || profiles.find(p => p.active === 1);
+  if (!prof) return [];
+  try {
+    return JSON.parse(prof.supermarket_chains || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function activeProfileParkMaxKm() {
+  const profId = parseInt(document.getElementById('filter-profile').value);
+  const prof = profiles.find(p => p.id === profId) || profiles.find(p => p.active === 1);
+  return prof ? (parseFloat(prof.park_max_km) || 0) : 0;
+}
+
+async function loadDetailParks(hashId, maxKm) {
+  const section = document.getElementById('panel-parks');
+  const list = document.getElementById('panel-parks-list');
+  if (!section || !list) return;
+
+  const km = maxKm || 1.0;
+  const resp = await fetch(`/api/listings/${hashId}/parks?km=${km}`);
+  const parks = await resp.json();
+
+  if (!parks.length) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  list.innerHTML = parks.map(p => {
+    const d = p.distance_km < 1
+      ? `${Math.round(p.distance_km * 1000)}m`
+      : `${p.distance_km}km`;
+    return `<div style="display:flex;justify-content:space-between;
+      padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>🌳 ${escapeHtml(p.name)}</span>
+      <span style="color:var(--score-green)">${d}</span>
+    </div>`;
+  }).join('');
+}
+
+function activeProfileWorkplace() {
+  const profId = parseInt(document.getElementById('filter-profile').value);
+  const prof = profiles.find(p => p.id === profId) || profiles.find(p => p.active === 1);
+  if (!prof || !prof.workplace_lat || !prof.workplace_lng) return null;
+  return { lat: prof.workplace_lat, lng: prof.workplace_lng };
+}
+
+async function loadDetailCommute(hashId, wpLat, wpLng) {
+  const section = document.getElementById('panel-commute');
+  if (!section || !wpLat || !wpLng) return;
+
+  section.style.display = 'block';
+  section.querySelector('.commute-content').innerHTML =
+    '<span style="color:var(--text-muted);font-size:12px">Calculating route…</span>';
+
+  const resp = await fetch(
+    `/api/listings/${hashId}/commute?to_lat=${wpLat}&to_lng=${wpLng}`
+  );
+  const data = await resp.json();
+
+  if (!data.available) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const effectiveMinutes = data.walk_minutes || Math.round(data.distance_km / 4.5 * 60);
+  const walkColor = effectiveMinutes <= 10 ? 'var(--score-green)'
+    : effectiveMinutes <= 20 ? 'var(--score-amber)'
+    : 'var(--text-muted)';
+
+  section.querySelector('.commute-content').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:13px">
+      <span>🚶 Walking to work</span>
+      <span style="font-weight:600;color:${walkColor}">
+        ${data.walk_minutes ? data.walk_minutes + ' min' : '~' + Math.round(data.distance_km / 4.5 * 60) + ' min (est)'}
+      </span>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:3px">
+      ${data.distance_km}km straight line
+    </div>`;
+}
+
+async function loadPanelSupermarkets(hashId, chains) {
+  if (!chains || chains.length === 0) return;
+  const resp = await fetch(`/api/listings/${hashId}/supermarkets?chains=${chains.join(',')}`);
+  const data = await resp.json();
+  const section = document.getElementById('panel-supermarkets');
+  const list = document.getElementById('panel-supermarkets-list');
+  if (!section || !list) return;
+
+  if (!data.length) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  list.innerHTML = data.map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:center;
+      padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${escapeHtml(s.chain)}</span>
+      <span style="color:${s.distance_km <= 1 ? 'var(--score-green)' : s.distance_km <= 2 ? 'var(--score-amber)' : 'var(--text-muted)'}">
+        ${s.distance_km < 1 ? Math.round(s.distance_km * 1000) + 'm' : s.distance_km + 'km'}
+      </span>
+    </div>
+  `).join('');
+}
+
+function renderFeatureBadges(features) {
+  if (!features) return '';
+  const badges = [];
+  if (features.balcony) badges.push('Balcony');
+  if (features.terrace) badges.push('Terrace');
+  if (features.parking) badges.push('Parking');
+  if (features.cellar) badges.push('Cellar');
+  if (features.bathtub) badges.push('Bathtub');
+  if (features.dishwasher) badges.push('Dishwasher');
+  if (features.furnished === 'furnished') badges.push('Furnished');
+  if (features.furnished === 'partial') badges.push('Part. furnished');
+  if (features.furnished === 'unfurnished') badges.push('Unfurnished');
+  if (features.building_age && features.building_age !== 'unknown') badges.push(
+    { new: 'New build', modern: 'Modern', renovated: 'Renovated', old: 'Period building' }[features.building_age] || ''
+  );
+  if (!badges.length) return '';
+  return `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">
+    ${badges.filter(Boolean).map(b => `<span style="font-size:11px;padding:2px 7px;border-radius:999px;
+      background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted)">${b}</span>`).join('')}
+  </div>`;
+}
+
+function openDetail(l) {
+  const isRent = l.listing_type === 'rent';
+  const b = l.score_breakdown || {};
+  const useProx = b.proximity !== null && b.proximity !== undefined;
+  const sColor = scoreColor(l.score);
+  const priceFormatted = l.price ? fmtInt(l.price) + (isRent ? ' CZK / mo' : ' CZK') : 'Price on request';
+
+  const isSrealityDetail = l.source === 'sreality';
+  const hasLocalDetail = l.image_url && l.image_url.startsWith('/static/');
+
+  let detailPhotoHtml;
+  if (!isSrealityDetail && (hasLocalDetail || l.image_url)) {
+    detailPhotoHtml = `
+      <img src="${proxyImg(l.image_url)}"
+        style="width:100%;height:200px;object-fit:cover;display:block"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div style="display:none;width:100%;height:200px">
+        ${noPhotoHtml(l.source)}
+      </div>`;
+  } else {
+    detailPhotoHtml = `<div style="width:100%;height:200px">
+      ${noPhotoHtml(l.source)}
+    </div>`;
+  }
+
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = `
+    <button id="panel-close">✕</button>
+    <div style="width:100%;height:200px;background:#1a1a1a">
+      ${detailPhotoHtml}
+    </div>
+    <div style="padding:20px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">${escapeHtml(l.title || '')}</div>
+      <div style="color:var(--text-muted);margin-bottom:12px">${escapeHtml(l.locality || '')}</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:16px">${priceFormatted}</div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--text-muted)">Match score</span>
+          <span style="color:${sColor};font-weight:700">${l.score}<span style="color:var(--text-muted);font-weight:400">/100</span></span>
+        </div>
+        <div style="height:6px;border-radius:3px;background:var(--border);margin:8px 0">
+          <div style="height:100%;border-radius:3px;width:${l.score}%;background:${sColor}"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--text-muted)">
+          <div>price: ${b.price ?? 0}/${useProx ? 25 : 30}</div>
+          <div>size: ${b.size ?? 0}/${useProx ? 20 : 25}</div>
+          <div>location: ${b.location ?? 0}/${useProx ? 20 : 25}</div>
+          <div>recency: ${b.recency ?? 0}/10</div>
+          <div>type: ${b.type ?? 0}/10</div>
+          ${useProx ? `<div>proximity: ${b.proximity}/15</div>` : ''}
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:20px">
+        <div>Size: ${l.size_m2} m²</div>
+        <div>Floor: ${l.floor_number > 0 ? l.floor_number : '–'}</div>
+        <div>Type: ${isRent ? 'Rent' : 'Buy'}</div>
+        <div>Property: ${l.property_type === 'house' ? 'House' : (l.property_type === 'flat' ? 'Flat' : (l.property_type || '–'))}</div>
+        <div>Source: ${l.source === 'sreality' ? 'Sreality' : l.source}</div>
+        <div>Listed: ${timeAgo(l.first_seen_at)}</div>
+      </div>
+
+      ${(() => {
+        let feats = null;
+        try { feats = JSON.parse(l.features_parsed || '{}'); } catch (e) { feats = null; }
+        return renderFeatureBadges(feats);
+      })()}
+
+      <div id="panel-supermarkets" style="margin-top:16px;display:none">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Supermarket distances</div>
+        <div id="panel-supermarkets-list"></div>
+      </div>
+
+      <div id="panel-parks" style="margin-top:16px;display:none">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;
+          color:var(--vivid)">Nearby parks</div>
+        <div id="panel-parks-list"></div>
+      </div>
+
+      <div id="panel-commute" style="margin-top:16px;display:none;
+        border:1px solid var(--border);border-radius:var(--radius);padding:12px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;
+          color:var(--vivid)">Commute</div>
+        <div class="commute-content"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a href="${l.url || '#'}" target="_blank" class="btn" style="text-align:center;border-color:var(--accent);color:var(--accent)">View listing ↗</a>
+        <button id="panel-save" class="btn ${l.is_saved ? '' : 'btn-accent'}">${l.is_saved ? 'Saved ✓' : 'Save listing'}</button>
+        <button id="panel-hide" class="btn-text">Not interested</button>
+      </div>
+    </div>
+  `;
+  panel.style.right = '0';
+  document.getElementById('panel-scrim').style.display = 'block';
+
+  const chains = activeProfileChains();
+  if (chains.length) loadPanelSupermarkets(l.hash_id, chains);
+  loadDetailParks(l.hash_id, activeProfileParkMaxKm());
+  const workplace = activeProfileWorkplace();
+  if (workplace) loadDetailCommute(l.hash_id, workplace.lat, workplace.lng);
+
+  document.getElementById('panel-close').onclick = closeDetail;
+  document.getElementById('panel-save').onclick = async () => {
+    const method = l.is_saved ? 'DELETE' : 'POST';
+    await fetch(`/api/listings/${encodeURIComponent(l.hash_id)}/save`, { method });
+    l.is_saved = !l.is_saved;
+    openDetail(l);
+    syncCardSave(l.hash_id, l.is_saved);
+  };
+  document.getElementById('panel-hide').onclick = async () => {
+    await fetch(`/api/listings/${encodeURIComponent(l.hash_id)}/hide`, { method: 'POST' });
+    const card = document.querySelector(`#card-grid .card[data-id="${CSS.escape(l.hash_id)}"]`);
+    if (card) card.remove();
+    closeDetail();
+  };
+}
+
+function syncCardSave(id, saved) {
+  const card = document.querySelector(`#card-grid .card[data-id="${CSS.escape(id)}"]`);
+  if (!card) return;
+  const btn = card.querySelector('.btn-save');
+  if (btn) {
+    btn.dataset.saved = saved ? '1' : '0';
+    btn.title = saved ? 'Remove from saved listings' : 'Save listing';
+    btn.innerHTML = saved
+      ? '<span style="color:#ef4444">♥</span>'
+      : '<span style="color:var(--text-muted)">♡</span>';
+  }
+  if (card._listing) card._listing.is_saved = saved;
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').style.right = '-480px';
+  document.getElementById('panel-scrim').style.display = 'none';
+}
+
+document.getElementById('panel-scrim').addEventListener('click', closeDetail);
+
+async function pollStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    const running = data.scheduler.running;
+    document.getElementById('sb-last').textContent = 'Last check: ' + timeAgo(data.scheduler.last_run);
+    document.getElementById('sb-tracked').textContent = 'Tracked: ' + data.db.total_listings;
+    document.getElementById('sb-new').textContent = 'New today: ' + data.db.new_today;
+    document.getElementById('sb-sched').textContent = 'Scheduler: ' + (running ? 'running' : 'paused');
+
+    if (document.getElementById('section-settings').classList.contains('active')) {
+      updateSchedulerCard(data.scheduler);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function loadProfiles() {
+  const res = await fetch('/api/profiles');
+  profiles = await res.json();
+
+  const sel = document.getElementById('filter-profile');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">No profile – show all</option>';
+  profiles.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.name;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+
+  renderProfileList(profiles);
+}
+
+function setProfileMode(mode) {
+  _profileMode = mode;
+  // Save button always visible, Cancel only when editing existing profile
+  document.getElementById('btn-save-profile').style.display = 'inline-flex';
+  document.getElementById('btn-cancel-edit').style.display =
+    (mode === 'edit') ? 'inline-flex' : 'none';
+  // Form always fully interactive
+  document.getElementById('profile-form').style.opacity = '1';
+  document.getElementById('profile-form').style.pointerEvents = 'auto';
+}
+
+function renderProfileList(profiles) {
+  const list = document.getElementById('profile-list');
+  list.innerHTML = '';
+  profiles.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'profile-row' + (p.id === currentEditingId ? ' selected' : '');
+    row.dataset.id = p.id;
+    row.innerHTML = `
+      <span class="profile-row-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</span>
+      <span class="toggle ${p.active ? 'on' : ''}" title="Toggle active"></span>
+      <button class="icon-btn btn-del">✕</button>
+    `;
+    row.querySelector('.toggle').addEventListener('click', async () => {
+      await fetch(`/api/profiles/${p.id}/toggle`, { method: 'PATCH' });
+      loadProfiles();
+    });
+    row.querySelector('.btn-del').addEventListener('click', () => {
+      showDeleteProfileModal(p.id, p.name);
+    });
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', (e) => {
+      // Don't trigger if clicking the Delete button or the active toggle directly
+      if (e.target.closest('.btn-del') ||
+          e.target.closest('.toggle')) return;
+      editProfile(p);
+    });
+    list.appendChild(row);
+  });
+
+  // Re-apply the editing highlight to the profile row currently loaded, so it
+  // survives every re-render (Save, Fetch now, toggle, etc.), not just the
+  // render triggered by editProfile() itself.
+  if (currentEditingId) {
+    const activeRow = document.querySelector(
+      `.profile-row[data-id="${currentEditingId}"]`
+    );
+    if (activeRow) activeRow.classList.add('editing');
+  }
+}
+
+function setPillGroup(groupId, value) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.pill').forEach(pill => {
+    const input = pill.querySelector('input');
+    const on = input.value === value;
+    input.checked = on;
+    pill.classList.toggle('active', on);
+  });
+}
+
+function getPillValue(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : 'both';
+}
+
+document.querySelectorAll('#f-listing-type, #f-property-type').forEach(group => {
+  group.addEventListener('click', (e) => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    const input = pill.querySelector('input');
+    if (!input) return;
+    group.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    input.checked = true;
+  });
+});
+
+let _pendingDeleteId = null;
+
+function showDeleteProfileModal(profileId, profileName) {
+  _pendingDeleteId = profileId;
+  document.getElementById('delete-profile-name').textContent =
+    `"${profileName}" will be permanently deleted.`;
+  const modal = document.getElementById('delete-profile-modal');
+  modal.style.display = 'flex';
+}
+
+document.getElementById('btn-cancel-delete').addEventListener('click', () => {
+  document.getElementById('delete-profile-modal').style.display = 'none';
+  _pendingDeleteId = null;
+});
+
+document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+  if (!_pendingDeleteId) return;
+  await fetch(`/api/profiles/${_pendingDeleteId}`, { method: 'DELETE' });
+  document.getElementById('delete-profile-modal').style.display = 'none';
+  _pendingDeleteId = null;
+  await loadProfiles();
+  newProfile();
+});
+
+function newProfile() {
+  currentEditingId = null;
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-price-min').value = '0';
+  document.getElementById('f-price-max').value = '0';
+  document.getElementById('f-size-min').value = '0';
+  document.getElementById('f-size-max').value = '0';
+  selectedCities = new Set();
+  selectedDistricts = new Set();
+  renderCitySelector();
+  renderDistrictSelector();
+  selectedMetroStops = new Set();
+  renderMetroSelector();
+  selectedNeighborhoods = new Set();
+  renderNeighborhoodSelector();
+  document.getElementById('praha-district-section').style.display = 'none';
+  selectedChains = new Set();
+  selectedMaxKm = 0;
+  renderChainSelector(null);
+  renderDistancePicker();
+  selectedParkMaxKm = 0;
+  renderParkDistancePicker();
+  {
+    const parkStatus = document.getElementById('park-status');
+    if (parkStatus) parkStatus.textContent =
+      'Select a city or district to see nearby parks.';
+    const parkList = document.getElementById('park-list');
+    if (parkList) parkList.innerHTML = '';
+  }
+  selectedRoomTypes = new Set();
+  selectedFurnished = new Set();
+  selectedBuildingAge = new Set();
+  ['f-outdoor', 'f-parking', 'f-cellar', 'f-bathtub', 'f-dishwasher'].forEach(id => {
+    document.getElementById(id).checked = false;
+  });
+  renderRoomTypeSelector();
+  renderMultiSelectPills('furnished-selector', FURNISHED_OPTIONS, selectedFurnished, 'any');
+  renderMultiSelectPills('building-age-selector', BUILDING_AGE_OPTIONS, selectedBuildingAge, 'any');
+  document.getElementById('f-floor-min').value = '0';
+  document.getElementById('f-threshold').value = '60';
+  document.getElementById('f-notify-email').checked = true;
+  document.getElementById('notify-settings-hint').style.display = 'block';
+  setPillGroup('f-listing-type', 'both');
+  setPillGroup('f-property-type', 'both');
+  document.getElementById('f-workplace').value = '';
+  workplaceLat = null;
+  workplaceLng = null;
+  document.getElementById('geocode-result').textContent = '';
+
+  document.querySelectorAll('.profile-row').forEach(r => r.classList.remove('editing'));
+  setProfileMode('new');
+  setSaveButtonState('btn-save-profile', 'dirty');
+  loadProfiles();
+}
+
+async function editProfile(p) {
+  currentEditingId = p.id;
+  document.getElementById('f-name').value = p.name || '';
+  document.getElementById('f-price-min').value = p.price_min || 0;
+  document.getElementById('f-price-max').value = p.price_max || 0;
+  document.getElementById('f-size-min').value = p.size_min || 0;
+  document.getElementById('f-size-max').value = p.size_max || 0;
+  setDistrictsFromProfile(p);  // pass full profile object
+  // Auto-load supermarkets and parks for the first selected area
+  setTimeout(() => {
+    let center = null;
+    if (selectedDistricts.size > 0) {
+      const first = [...selectedDistricts][0];
+      center = DISTRICT_CENTERS[first];
+    } else if (selectedCities.size > 0) {
+      const first = [...selectedCities][0];
+      center = first === 'Praha'
+        ? [50.0755, 14.4378]
+        : (CITY_CENTERS[first] || null);
+    }
+    if (center) {
+      fetchNearbySupers(center[0], center[1]);
+      fetchNearbyParks(center[0], center[1]);
+    }
+  }, 100);
+  selectedChains = new Set(JSON.parse(p.supermarket_chains || '[]'));
+  selectedMaxKm = parseFloat(p.supermarket_max_km) || 0;
+  selectedParkMaxKm = parseFloat(p.park_max_km) || 0;
+  renderParkDistancePicker();
+  renderChainSelector(null);
+  if (selectedChains.size > 0) {
+    const container = document.getElementById('chain-selector');
+    container.innerHTML = '';
+    [...selectedChains].forEach(chain => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.textContent = chain;
+      pill.style.cssText = `padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+        border:1px solid var(--vivid);background:var(--vivid);color:#fff;`;
+      pill.addEventListener('click', () => {
+        selectedChains.delete(chain);
+        pill.remove();
+        renderDistancePicker();
+      });
+      container.appendChild(pill);
+    });
+    renderDistancePicker();
+  }
+  selectedRoomTypes = new Set(JSON.parse(p.room_types || '[]'));
+  const furnishedVal = p.feature_furnished_v2 || p.feature_furnished || '[]';
+  selectedFurnished = new Set(
+    furnishedVal.startsWith('[')
+      ? JSON.parse(furnishedVal).filter(v => v && v !== 'any')
+      : (furnishedVal === 'any' || !furnishedVal ? [] : [furnishedVal])
+  );
+
+  const ageVal = p.feature_building_age_v2 || p.feature_building_age || '[]';
+  selectedBuildingAge = new Set(
+    ageVal.startsWith('[')
+      ? JSON.parse(ageVal).filter(v => v && v !== 'any')
+      : (ageVal === 'any' || !ageVal ? [] : [ageVal])
+  );
+  document.getElementById('f-outdoor').checked = !!(p.feature_balcony || p.feature_terrace);
+  document.getElementById('f-parking').checked = !!p.feature_parking;
+  document.getElementById('f-cellar').checked = !!p.feature_cellar;
+  document.getElementById('f-bathtub').checked = !!p.feature_bathtub;
+  document.getElementById('f-dishwasher').checked = !!p.feature_dishwasher;
+  renderRoomTypeSelector();
+  renderMultiSelectPills('furnished-selector', FURNISHED_OPTIONS, selectedFurnished, 'any');
+  renderMultiSelectPills('building-age-selector', BUILDING_AGE_OPTIONS, selectedBuildingAge, 'any');
+  document.getElementById('f-floor-min').value = p.floor_min || 0;
+  document.getElementById('f-threshold').value = p.score_threshold ?? 60;
+  document.getElementById('f-notify-email').checked = p.notify_email === 1;
+  document.getElementById('notify-settings-hint').style.display = p.notify_email === 1 ? 'block' : 'none';
+  setPillGroup('f-listing-type', p.listing_type || 'both');
+  setPillGroup('f-property-type', p.property_type || 'both');
+  document.getElementById('f-workplace').value = p.workplace_address || '';
+  workplaceLat = p.workplace_lat || null;
+  workplaceLng = p.workplace_lng || null;
+  {
+    const resultEl = document.getElementById('geocode-result');
+    if (workplaceLat && workplaceLng) {
+      resultEl.innerHTML = `<span style="color:var(--score-green)">✓ Located</span>
+        · <span style="color:var(--text-muted)">${workplaceLat.toFixed(4)}, ${workplaceLng.toFixed(4)}</span>`;
+    } else {
+      resultEl.textContent = '';
+    }
+  }
+  setProfileMode('edit');
+
+  // Highlight row
+  document.querySelectorAll('.profile-row').forEach(r => r.classList.remove('editing'));
+  const row = document.querySelector(`.profile-row[data-id="${p.id}"]`);
+  if (row) row.classList.add('editing');
+
+  await loadProfiles();
+  document.getElementById('profile-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('btn-new-profile').addEventListener('click', newProfile);
+document.getElementById('btn-cancel-edit').addEventListener('click', async () => {
+  // Reload original profile data
+  const profiles = await fetch('/api/profiles').then(r => r.json());
+  const p = profiles.find(x => x.id === currentEditingId);
+  if (p) editProfile(p);
+});
+
+document.getElementById('f-notify-email').addEventListener('change', function() {
+  const hint = document.getElementById('notify-settings-hint');
+  if (hint) hint.style.display = this.checked ? 'block' : 'none';
+});
+
+let workplaceLat = null, workplaceLng = null;
+
+document.getElementById('btn-geocode').addEventListener('click', async () => {
+  const address = document.getElementById('f-workplace').value.trim();
+  const resultEl = document.getElementById('geocode-result');
+  const btn = document.getElementById('btn-geocode');
+  if (!address) return;
+
+  btn.textContent = 'Locating…';
+  btn.disabled = true;
+  resultEl.textContent = '';
+
+  const resp = await fetch('/api/geocode?address=' + encodeURIComponent(address));
+  const data = await resp.json();
+
+  btn.textContent = 'Locate';
+  btn.disabled = false;
+
+  if (data.found) {
+    workplaceLat = data.lat;
+    workplaceLng = data.lng;
+    resultEl.innerHTML = `<span style="color:var(--score-green)">✓ Located</span>
+      · <span style="color:var(--text-muted)">${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}</span>`;
+    setSaveButtonState('btn-save-profile', 'dirty');
+  } else {
+    workplaceLat = null;
+    workplaceLng = null;
+    resultEl.innerHTML = '<span style="color:var(--score-red)">Address not found. Try a more specific address.</span>';
+  }
+});
+
+// Mark the profile save button dirty on any change within the criteria form –
+// covers listing/property type pills, price/size/threshold inputs, room type,
+// furnished/condition pills, feature checkboxes, notify toggle, and the
+// district/neighborhood/metro/city pill selectors (which re-render their DOM
+// on every change, so per-pill listeners would need constant re-wiring).
+['input', 'change', 'click'].forEach(evt => {
+  document.getElementById('profile-form').addEventListener(evt, (e) => {
+    if (e.target.closest('#btn-save-profile') || e.target.closest('#btn-cancel-edit')) return;
+    setSaveButtonState('btn-save-profile', 'dirty');
+  });
+});
+
+document.getElementById('btn-save-profile').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-save-profile');
+  const errEl = document.getElementById('profile-save-error');
+  errEl.style.display = 'none';
+  errEl.textContent = '';
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Profile name is required'); return; }
+
+  const body = {
+    name,
+    listing_type: getPillValue('listing_type'),
+    property_type: getPillValue('property_type'),
+    price_min: parseInt(document.getElementById('f-price-min').value) || 0,
+    price_max: parseInt(document.getElementById('f-price-max').value) || 0,
+    size_min: parseInt(document.getElementById('f-size-min').value) || 0,
+    size_max: parseInt(document.getElementById('f-size-max').value) || 0,
+    districts: getSelectedDistricts(),
+    metro_stops: JSON.stringify([...selectedMetroStops]),
+    selected_neighborhoods: JSON.stringify([...selectedNeighborhoods]),
+    selected_cities: JSON.stringify([...selectedCities]),
+    floor_min: parseInt(document.getElementById('f-floor-min').value) || 0,
+    score_threshold: parseInt(document.getElementById('f-threshold').value) || 0,
+    notify_email: document.getElementById('f-notify-email').checked ? 1 : 0,
+    supermarket_chains: JSON.stringify([...selectedChains]),
+    supermarket_max_km: selectedMaxKm,
+    park_max_km: selectedParkMaxKm,
+    workplace_address: document.getElementById('f-workplace').value.trim(),
+    workplace_lat: workplaceLat,
+    workplace_lng: workplaceLng,
+    room_types: JSON.stringify([...selectedRoomTypes]),
+    feature_balcony: document.getElementById('f-outdoor').checked ? 1 : 0,
+    feature_terrace: document.getElementById('f-outdoor').checked ? 1 : 0,
+    feature_parking: document.getElementById('f-parking').checked ? 1 : 0,
+    feature_cellar: document.getElementById('f-cellar').checked ? 1 : 0,
+    feature_bathtub: document.getElementById('f-bathtub').checked ? 1 : 0,
+    feature_dishwasher: document.getElementById('f-dishwasher').checked ? 1 : 0,
+    feature_furnished: selectedFurnished.size > 0 ? [...selectedFurnished][0] : 'any',
+    feature_building_age: selectedBuildingAge.size > 0 ? [...selectedBuildingAge][0] : 'any',
+    feature_furnished_v2: JSON.stringify([...selectedFurnished]),
+    feature_building_age_v2: JSON.stringify([...selectedBuildingAge]),
+  };
+
+  const url = currentEditingId ? `/api/profiles/${currentEditingId}` : '/api/profiles';
+  const method = currentEditingId ? 'PUT' : 'POST';
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errBody = await res.text();
+    console.error('Profile save failed:', res.status, errBody);
+    errEl.textContent = 'Save failed – check console';
+    errEl.style.display = 'block';
+    return;
+  }
+  const savedProfile = await res.json();
+
+  await fetch('/api/scores/recalculate', { method: 'POST' });
+  await loadFeed();
+
+  // Stay in edit mode showing the saved profile
+  currentEditingId = savedProfile.id;
+  await loadProfiles();
+  // Re-render selectors with saved values so nothing disappears
+  setDistrictsFromProfile(savedProfile);
+  selectedParkMaxKm = parseFloat(savedProfile.park_max_km) || 0;
+  renderParkDistancePicker();
+  document.getElementById('f-workplace').value = savedProfile.workplace_address || '';
+  workplaceLat = savedProfile.workplace_lat || null;
+  workplaceLng = savedProfile.workplace_lng || null;
+  {
+    const resultEl = document.getElementById('geocode-result');
+    if (workplaceLat && workplaceLng) {
+      resultEl.innerHTML = `<span style="color:var(--score-green)">✓ Located</span>
+        · <span style="color:var(--text-muted)">${workplaceLat.toFixed(4)}, ${workplaceLng.toFixed(4)}</span>`;
+    } else {
+      resultEl.textContent = '';
+    }
+  }
+  selectedChains = new Set(JSON.parse(savedProfile.supermarket_chains || '[]'));
+  selectedMaxKm = parseFloat(savedProfile.supermarket_max_km) || 0;
+  renderChainSelector(null);
+  if (selectedChains.size > 0) {
+    const chainContainer = document.getElementById('chain-selector');
+    chainContainer.innerHTML = '';
+    [...selectedChains].forEach(chain => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.textContent = chain;
+      pill.style.cssText = `padding:4px 10px;border-radius:999px;font-size:12px;cursor:pointer;
+        border:1px solid var(--vivid);background:var(--vivid);color:#fff;`;
+      pill.addEventListener('click', () => {
+        selectedChains.delete(chain);
+        pill.remove();
+        renderDistancePicker();
+      });
+      chainContainer.appendChild(pill);
+    });
+    renderDistancePicker();
+  }
+  btn.textContent = 'Saved ✓';
+  btn.style.opacity = '0.6';
+  setTimeout(() => {
+    btn.textContent = 'Save profile';
+    btn.style.opacity = '1';
+  }, 2000);
+});
+
+document.getElementById('btn-fetch').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-fetch');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Fetching…';
+  fetching = true;
+  pollStatus();
+  await fetch('/api/scheduler/trigger', { method: 'POST' });
+  setTimeout(async () => {
+    btn.disabled = false;
+    btn.textContent = orig;
+    fetching = false;
+    await loadFeed();
+    await loadProfiles();
+    pollStatus();
+  }, 3000);
+});
+
+['filter-type', 'filter-sort'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => { currentPage = 1; loadFeed(); });
+});
+
+document.getElementById('filter-profile').addEventListener('change', () => {
+  const profileId = parseInt(document.getElementById('filter-profile').value);
+  const profile = profiles.find(p => p.id === profileId);
+  if (profile) {
+    const typeMap = { 'rent': 'rent', 'buy': 'buy', 'both': '' };
+    document.getElementById('filter-type').value = typeMap[profile.listing_type] || '';
+
+    const localityInput = document.getElementById('filter-locality');
+    const districts = Array.isArray(profile.districts) ? profile.districts : JSON.parse(profile.districts || '[]');
+    if (districts.length > 0) {
+      localityInput.placeholder = districts.join(', ');
+    } else {
+      localityInput.placeholder = 'Filter by location…';
+    }
+  }
+
+  currentPage = 1;
+  loadFeed();
+});
+
+document.getElementById('filter-locality').addEventListener('input', () => {
+  clearTimeout(localityTimer);
+  localityTimer = setTimeout(() => { currentPage = 1; loadFeed(); }, 300);
+});
+
+/* ===== Saved tracker ===== */
+let savedListings = [];
+let savedFilter = 'all';
+
+const STATUS_COLOR = {
+  interested: 'var(--accent)',
+  visited: 'var(--score-amber)',
+  contacted: 'var(--score-green)',
+  rejected: 'var(--text-muted)',
+};
+
+function noteTimestamp(iso) {
+  if (!iso) return '';
+  let t = iso;
+  if (!t.endsWith('Z') && !t.includes('+')) t = t.replace(' ', 'T') + 'Z';
+  const d = new Date(t);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+async function loadSaved() {
+  try {
+    const res = await fetch('/api/saved');
+    savedListings = await res.json();
+  } catch (e) {
+    savedListings = [];
+  }
+  renderSaved();
+
+  const container = document.getElementById('saved-rows');
+  if (!container._unsaveWired) {
+    container._unsaveWired = true;
+    container.addEventListener('click', async e => {
+      const btn = e.target.closest('.btn-unsave');
+      if (!btn) return;
+      const hashId = btn.dataset.id;
+      await fetch(`/api/listings/${hashId}/save`, { method: 'DELETE' });
+      savedListings = savedListings.filter(s => s.hash_id !== hashId);
+      const row = btn.closest('.saved-row');
+      const wrapper = row.parentElement;
+      (wrapper && wrapper !== container ? wrapper : row).remove();
+      // Update count label
+      const remaining = container.querySelectorAll('.saved-row').length;
+      document.getElementById('saved-count').textContent = `${remaining} saved listing${remaining !== 1 ? 's' : ''}`;
+    });
+  }
+}
+
+function sortedSaved(list) {
+  const s = document.getElementById('saved-sort').value;
+  const arr = list.slice();
+  if (s === 'score') arr.sort((a, b) => (b.score || 0) - (a.score || 0));
+  else if (s === 'price_asc') arr.sort((a, b) => (a.price || 0) - (b.price || 0));
+  else if (s === 'price_desc') arr.sort((a, b) => (b.price || 0) - (a.price || 0));
+  else arr.sort((a, b) => String(b.saved_at).localeCompare(String(a.saved_at)));
+  return arr;
+}
+
+function renderSaved() {
+  const wrap = document.getElementById('saved-rows');
+  wrap.innerHTML = '';
+  const visible = sortedSaved(savedListings).filter(
+    s => savedFilter === 'all' || s.status === savedFilter
+  );
+
+  document.getElementById('saved-count').textContent =
+    visible.length + ' saved listing' + (visible.length === 1 ? '' : 's');
+
+  const anySaved = savedListings.length > 0;
+  document.getElementById('saved-table').style.display = anySaved ? 'block' : 'none';
+  document.getElementById('saved-bar').style.display = anySaved ? 'flex' : 'none';
+  document.getElementById('saved-empty').style.display = anySaved ? 'none' : 'block';
+
+  visible.forEach(s => wrap.appendChild(renderSavedRow(s)));
+}
+
+function renderSavedRow(s) {
+  const frag = document.createElement('div');
+  const isRent = s.listing_type === 'rent';
+  const price = s.price ? fmtInt(s.price) : 'Price on request';
+  const suffix = s.price ? (isRent ? '/mo' : '') : '';
+  const sColor = scoreColor(s.score || 0);
+
+  const noteCount = (s.notes || []).length;
+  const noteLabel = noteCount === 0
+    ? '+ Add note'
+    : `📝 ${noteCount} note${noteCount !== 1 ? 's' : ''}`;
+  const noteBtn = `<button class="note-toggle-btn" data-id="${s.hash_id}"
+    style="background:none;border:1px solid var(--border);border-radius:var(--radius);
+    padding:3px 10px;font-size:12px;color:var(--text-muted);cursor:pointer;
+    white-space:nowrap;transition:border-color 0.15s,color 0.15s">
+    ${noteLabel}
+  </button>`;
+
+  const thumbHtml = (s.image_url && s.image_url.startsWith('/static/'))
+    ? `<img src="${s.image_url}" class="saved-thumb" onerror="this.style.display='none'">`
+    : `<div class="saved-thumb" style="display:flex;align-items:center;
+        justify-content:center;font-size:16px;opacity:0.3">🏠</div>`;
+
+  const row = document.createElement('div');
+  row.className = 'saved-row saved-body-row';
+  row.dataset.id = s.hash_id;
+  row.innerHTML = `
+    <div class="c-thumb">
+      ${thumbHtml}
+    </div>
+    <div class="c-title">
+      <div class="saved-title">${escapeHtml(s.title || '')}</div>
+      <div class="saved-locality">${escapeHtml(s.locality || '')}</div>
+    </div>
+    <div class="c-price"><span style="font-weight:600">${price}</span> <span style="color:var(--text-muted);font-size:12px">${suffix}</span></div>
+    <div class="c-score"><span style="display:inline-flex;width:34px;height:34px;border-radius:50%;background:${sColor};color:#000;font-weight:700;font-size:12px;align-items:center;justify-content:center">${s.score || 0}</span></div>
+    <div class="c-status">
+      <select class="saved-status-select" style="color:${STATUS_COLOR[s.status] || 'var(--text)'}">
+        <option value="interested">Interested</option>
+        <option value="visited">Visited</option>
+        <option value="contacted">Contacted</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="c-notes">${noteBtn}</div>
+    <div class="c-actions" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">
+      <a href="${s.url || '#'}" target="_blank" style="color:var(--accent);font-size:12px">View listing ↗</a>
+      <button class="btn-unsave btn-danger-outline" data-id="${s.hash_id}">
+        Remove
+      </button>
+    </div>
+  `;
+
+  const select = row.querySelector('.saved-status-select');
+  select.value = s.status || 'interested';
+  select.addEventListener('change', async () => {
+    const res = await fetch(`/api/saved/${encodeURIComponent(s.hash_id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: select.value }),
+    });
+    if (res.ok) {
+      s.status = select.value;
+      select.style.color = STATUS_COLOR[s.status] || 'var(--text)';
+      renderSaved();
+    }
+  });
+
+  const panel = document.createElement('div');
+  panel.className = 'notes-panel';
+  panel.innerHTML = `<div class="notes-panel-inner"></div>`;
+
+  row.querySelector('.note-toggle-btn').addEventListener('click', () => {
+    const open = panel.classList.toggle('open');
+    if (open) renderNotesPanel(panel.firstElementChild, s);
+  });
+
+  frag.appendChild(row);
+  frag.appendChild(panel);
+  return frag;
+}
+
+function renderNotes(notes) {
+  if (!notes || !notes.length) return '<div style="color:var(--text-muted);font-size:12px;padding:8px 0">No notes yet.</div>';
+  return notes.map((note, i) => `
+    <div style="padding:8px 0;${i > 0 ? 'border-top:1px solid var(--border);' : ''}">
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;
+        font-weight:600;letter-spacing:0.05em">
+        ${formatNoteTimestamp(note.timestamp)}
+      </div>
+      <div style="font-size:13px;line-height:1.5;display:flex;
+        justify-content:space-between;align-items:flex-start;gap:8px">
+        <span>${escapeHtml(note.text || '')}</span>
+        <button onclick="deleteNote('${note._hashId}', ${i})"
+          style="background:none;border:none;cursor:pointer;color:var(--text-muted);
+          font-size:16px;padding:0;flex-shrink:0;line-height:1"
+          title="Delete note">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function formatNoteTimestamp(ts) {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    }) + ' · ' + d.toLocaleTimeString('en-GB', {
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return ts; }
+}
+
+function renderNotesPanel(inner, s) {
+  const notes = s.notes || [];
+  notes.forEach(n => { n._hashId = s.hash_id; });
+  inner.innerHTML = `
+    ${renderNotes(notes)}
+    <div style="margin-top:10px">
+      <textarea class="note-input" placeholder="Add a note..." rows="2" style="width:100%;resize:vertical;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px"></textarea>
+      <button class="btn btn-accent note-add" style="margin-top:6px;padding:6px 12px">Add note</button>
+    </div>
+  `;
+  inner.querySelector('.note-add').addEventListener('click', () => {
+    const ta = inner.querySelector('.note-input');
+    const text = ta.value.trim();
+    if (text) addNote(s, text, inner);
+  });
+}
+
+async function addNote(s, text, inner) {
+  const res = await fetch(`/api/saved/${encodeURIComponent(s.hash_id)}/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  if (!res.ok) return;
+  s.notes = (await res.json()).notes;
+  renderNotesPanel(inner, s);
+  updateNoteCount(s);
+}
+
+async function deleteNote(hashId, index) {
+  const s = savedListings.find(x => x.hash_id === hashId);
+  if (!s) return;
+  const res = await fetch(`/api/saved/${encodeURIComponent(hashId)}/notes/${index}`, { method: 'DELETE' });
+  if (!res.ok) return;
+  s.notes = (await res.json()).notes;
+  const row = document.querySelector(`#saved-rows .saved-body-row[data-id="${CSS.escape(hashId)}"]`);
+  const inner = row && row.nextElementSibling && row.nextElementSibling.querySelector('.notes-panel-inner');
+  if (inner) renderNotesPanel(inner, s);
+  updateNoteCount(s);
+}
+
+function updateNoteCount(s) {
+  const row = document.querySelector(`#saved-rows .saved-body-row[data-id="${CSS.escape(s.hash_id)}"]`);
+  if (!row) return;
+  const btn = row.querySelector('.note-toggle-btn');
+  const n = (s.notes || []).length;
+  btn.textContent = n === 0 ? '+ Add note' : `📝 ${n} note${n !== 1 ? 's' : ''}`;
+}
+
+function filterSaved(status) {
+  savedFilter = status;
+  document.querySelectorAll('#saved-status-filter .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.status === status);
+  });
+  renderSaved();
+}
+
+function exportSaved() {
+  window.location.href = '/api/saved/export';
+}
+
+document.getElementById('saved-status-filter').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (pill) filterSaved(pill.dataset.status);
+});
+document.getElementById('saved-sort').addEventListener('change', renderSaved);
+document.getElementById('btn-export-csv').addEventListener('click', exportSaved);
+
+/* ===== Log / email settings ===== */
+
+const SMTP_INSTRUCTIONS = {
+  'smtp.mail.yahoo.com': {
+    text: 'Yahoo requires an App Password — not your regular Yahoo password.',
+    steps: [
+      'Go to <a href="https://account.yahoo.com/security" target="_blank" style="color:var(--accent)">account.yahoo.com/security</a>',
+      'Click <strong>Generate app password</strong>',
+      'Name it "FlatRadar" and click Generate',
+      'Copy the code shown and paste it above',
+    ]
+  },
+  'smtp.gmail.com': {
+    text: 'Gmail requires an App Password — not your Google account password.',
+    steps: [
+      'Go to <a href="https://myaccount.google.com/security" target="_blank" style="color:var(--accent)">myaccount.google.com/security</a>',
+      'Enable 2-Step Verification if not already on',
+      'Search for "App passwords" and open it',
+      'Name it "FlatRadar" and click Create',
+      'Copy the 16-character code and paste it above',
+    ]
+  },
+  'smtp.office365.com': {
+    text: 'Outlook requires your regular password, but your account must allow SMTP AUTH.',
+    steps: [
+      'Go to <a href="https://admin.microsoft.com" target="_blank" style="color:var(--accent)">admin.microsoft.com</a> (if you have admin access)',
+      'Enable SMTP AUTH for your account under Active Users → Mail settings',
+      'Use your regular Outlook password here',
+    ]
+  },
+  'smtp.mail.me.com': {
+    text: 'iCloud requires an app-specific password.',
+    steps: [
+      'Go to <a href="https://appleid.apple.com" target="_blank" style="color:var(--accent)">appleid.apple.com</a>',
+      'Sign in → Security → App-Specific Passwords',
+      'Click + to generate one named "FlatRadar"',
+      'Copy and paste it above',
+    ]
+  },
+  'custom': {
+    text: 'Check with your email provider whether SMTP access requires a special app password.',
+    steps: []
+  }
+};
+
+function updatePasswordInstructions(host) {
+  const el = document.getElementById('smtp-password-instructions');
+  if (!el) return;
+  const info = SMTP_INSTRUCTIONS[host] || SMTP_INSTRUCTIONS['custom'];
+  const stepsHtml = info.steps.length
+    ? `<ol style="margin:6px 0 0 16px;padding:0;line-height:1.8">
+        ${info.steps.map(s => `<li>${s}</li>`).join('')}
+       </ol>`
+    : '';
+  el.innerHTML = `
+    <div style="font-size:12px;color:var(--text-muted);margin-top:8px;
+      background:var(--surface-2);border:1px solid var(--border);
+      border-radius:var(--radius);padding:10px 12px;line-height:1.5">
+      <div style="font-weight:600;color:var(--text);margin-bottom:4px">
+        How to get your password
+      </div>
+      <div>${info.text}</div>
+      ${stepsHtml}
+    </div>`;
+}
+
+document.getElementById('s-smtp-host-preset').addEventListener('change', function() {
+  const hostInput = document.getElementById('s-smtp-host');
+  const portInput = document.getElementById('s-smtp-port');
+
+  if (this.value === 'custom') {
+    hostInput.style.display = 'block';
+    hostInput.value = '';
+  } else {
+    hostInput.style.display = 'none';
+    hostInput.value = this.value;
+  }
+
+  // Auto-fill port
+  const ports = {
+    'smtp.mail.yahoo.com': '587',
+    'smtp.gmail.com': '587',
+    'smtp.office365.com': '587',
+    'smtp.mail.me.com': '587',
+  };
+  if (portInput && this.value !== 'custom') {
+    portInput.value = ports[this.value] || '587';
+  }
+
+  // Update password instructions
+  updatePasswordInstructions(this.value);
+  setSaveButtonState('btn-save-settings', 'dirty');
+});
+
+async function loadSettingsSection() {
+  try {
+    const settings = await (await fetch('/api/settings')).json();
+
+    const host = settings.smtp_host || 'smtp.mail.yahoo.com';
+    const presetSelect = document.getElementById('s-smtp-host-preset');
+    const hostInput = document.getElementById('s-smtp-host');
+
+    // Check if host matches a preset
+    const presetValues = Array.from(presetSelect.options).map(o => o.value);
+    if (presetValues.includes(host) && host !== 'custom') {
+      presetSelect.value = host;
+      hostInput.style.display = 'none';
+      hostInput.value = host;
+    } else {
+      presetSelect.value = 'custom';
+      hostInput.style.display = 'block';
+      hostInput.value = host;
+    }
+    updatePasswordInstructions(presetSelect.value);
+
+    document.getElementById('s-smtp-port').value = settings.smtp_port || '587';
+    document.getElementById('s-smtp-user').value = settings.smtp_user || '';
+    document.getElementById('s-smtp-password').value = '';
+    document.getElementById('s-email-from').value = settings.email_from || '';
+    document.getElementById('s-email-to').value = settings.email_to || '';
+    setNotifToggle(settings.notifications_enabled === '1');
+
+    const emailBtn = document.getElementById('btn-save-settings');
+    if (emailBtn) {
+      emailBtn.dataset.label = 'Save settings';
+      setSaveButtonState('btn-save-settings', 'saved');
+    }
+
+    const emailFields = ['s-smtp-host', 's-smtp-port', 's-smtp-user', 's-smtp-password',
+                         's-email-from', 's-email-to', 'sched-notifications-toggle'];
+    emailFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', () => setSaveButtonState('btn-save-settings', 'dirty'));
+        el.addEventListener('input', () => setSaveButtonState('btn-save-settings', 'dirty'));
+      }
+    });
+    // Also mark dirty when the notifications enabled toggle changes
+    const notifToggle = document.getElementById('notifications-enabled-toggle');
+    if (notifToggle) notifToggle.addEventListener('change',
+      () => setSaveButtonState('btn-save-settings', 'dirty'));
+
+    const freq = settings.notification_frequency || 'daily';
+    document.querySelectorAll('#notif-freq-pills .freq-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.val === freq);
+    });
+  } catch (e) { console.error(e); }
+
+  try {
+    const st = await (await fetch('/api/status')).json();
+    updateSchedulerCard(st.scheduler);
+    const interval = st.scheduler.interval_minutes || 20;
+    document.querySelectorAll('#freq-pills .freq-pill').forEach(p => {
+      p.classList.toggle('active', parseInt(p.dataset.val) === interval);
+    });
+
+    const activeFreqPill = document.querySelector('#freq-pills .freq-pill.active');
+    const isManual = activeFreqPill?.dataset.val === '0';
+    const notifSection = document.getElementById('notif-freq-pills');
+    const notifLabel = notifSection?.previousElementSibling;
+    if (notifSection) {
+      if (isManual) {
+        notifSection.style.opacity = '0.35';
+        notifSection.style.pointerEvents = 'none';
+        notifSection.querySelectorAll('.freq-pill').forEach(p => {
+          p.style.background = 'none';
+          p.style.borderColor = 'var(--border)';
+          p.style.color = 'var(--text-muted)';
+        });
+      } else {
+        notifSection.style.opacity = '1';
+        notifSection.style.pointerEvents = 'auto';
+        const activeVal = document.querySelector('#notif-freq-pills .freq-pill.active')?.dataset.val;
+        notifSection.querySelectorAll('.freq-pill').forEach(p => {
+          const isActive = p.dataset.val === activeVal;
+          p.style.background = isActive ? 'var(--vivid)' : 'none';
+          p.style.borderColor = isActive ? 'var(--vivid)' : 'var(--border)';
+          p.style.color = isActive ? '#fff' : 'var(--text-muted)';
+        });
+      }
+    }
+    if (notifLabel) {
+      notifLabel.style.opacity = isManual ? '0.4' : '1';
+    }
+
+    const schedBtn = document.getElementById('btn-save-sched');
+    if (schedBtn) {
+      schedBtn.dataset.label = 'Save schedule';
+      setSaveButtonState('btn-save-sched', 'saved');
+    }
+  } catch (e) { console.error(e); }
+
+  document.querySelectorAll('#freq-pills .freq-pill').forEach(p => {
+    p.onclick = () => {
+      document.querySelectorAll('#freq-pills .freq-pill')
+        .forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+
+      // Disable notification frequency when manual-only is selected
+      const isManual = p.dataset.val === '0';
+      const notifSection = document.getElementById('notif-freq-pills');
+      const notifLabel = notifSection?.previousElementSibling;
+      if (notifSection) {
+        if (isManual) {
+          notifSection.style.opacity = '0.35';
+          notifSection.style.pointerEvents = 'none';
+          notifSection.querySelectorAll('.freq-pill').forEach(p => {
+            p.style.background = 'none';
+            p.style.borderColor = 'var(--border)';
+            p.style.color = 'var(--text-muted)';
+          });
+        } else {
+          notifSection.style.opacity = '1';
+          notifSection.style.pointerEvents = 'auto';
+          const activeVal = document.querySelector('#notif-freq-pills .freq-pill.active')?.dataset.val;
+          notifSection.querySelectorAll('.freq-pill').forEach(p => {
+            const isActive = p.dataset.val === activeVal;
+            p.style.background = isActive ? 'var(--vivid)' : 'none';
+            p.style.borderColor = isActive ? 'var(--vivid)' : 'var(--border)';
+            p.style.color = isActive ? '#fff' : 'var(--text-muted)';
+          });
+        }
+      }
+      if (notifLabel) {
+        notifLabel.style.opacity = isManual ? '0.4' : '1';
+      }
+      setSaveButtonState('btn-save-sched', 'dirty');
+    };
+  });
+
+  document.querySelectorAll('#notif-freq-pills .freq-pill').forEach(p => {
+    p.onclick = () => {
+      document.querySelectorAll('#notif-freq-pills .freq-pill')
+        .forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+
+      const notifSection = document.getElementById('notif-freq-pills');
+      notifSection.querySelectorAll('.freq-pill').forEach(p => {
+        const isActive = p.classList.contains('active');
+        p.style.background = isActive ? 'var(--vivid)' : 'none';
+        p.style.borderColor = isActive ? 'var(--vivid)' : 'var(--border)';
+        p.style.color = isActive ? '#fff' : 'var(--text-muted)';
+      });
+      setSaveButtonState('btn-save-sched', 'dirty');
+    };
+  });
+
+  document.getElementById('btn-save-sched').onclick = async () => {
+    const activePill = document.querySelector('#freq-pills .freq-pill.active');
+    const interval = activePill ? parseInt(activePill.dataset.val) : 20;
+    const activeFreq = document.querySelector('#notif-freq-pills .freq-pill.active');
+    await fetch('/api/scheduler/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scheduler_interval_minutes: interval,
+        notification_frequency: activeFreq ? activeFreq.dataset.val : 'daily',
+      })
+    });
+    setSaveButtonState('btn-save-sched', 'saved');
+    pollStatus();
+  };
+}
+
+function renderActivityRow(run) {
+  const time = run.started_at ? timeAgo(run.started_at) : '–';
+  const total = (run.sreality_fetched||0) +
+                (run.bezrealitky_fetched||0) +
+                (run.expats_fetched||0);
+  let matchHtml = '';
+  try {
+    const m = JSON.parse(run.profile_matches || '{}');
+    matchHtml = Object.entries(m).map(([name, count]) =>
+      `<span style="color:var(--accent)">${count}</span>
+       <span style="color:var(--text-muted)"> matches for ${escapeHtml(name)}</span>`
+    ).join('<br>');
+  } catch(e) {}
+
+  let errorHtml = '';
+  try {
+    const errs = JSON.parse(run.errors || '[]');
+    if (errs.length) errorHtml = `<div style="color:var(--score-red);
+      font-size:11px;margin-top:4px">⚠ ${escapeHtml(errs.join('; '))}</div>`;
+  } catch(e) {}
+
+  return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;
+      align-items:baseline;margin-bottom:5px">
+      <div>
+        <span style="font-size:15px;font-weight:700;
+          color:var(--text)">${run.new_listings}</span>
+        <span style="font-size:12px;color:var(--text-muted)"> new
+          of ${total.toLocaleString()} fetched</span>
+        ${run.deduplicated > 0
+          ? `<span style="font-size:11px;color:var(--text-muted)">
+              · ${run.deduplicated} deduped</span>`
+          : ''}
+      </div>
+      <span style="font-size:11px;color:var(--text-muted);
+        flex-shrink:0">${time}</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);
+      display:flex;gap:12px;margin-bottom:${matchHtml ? '5px' : '0'}">
+      <span>Sreality ${run.sreality_fetched||0}</span>
+      <span>Bezrealitky ${run.bezrealitky_fetched||0}</span>
+      <span>Expats ${run.expats_fetched||0}</span>
+    </div>
+    ${matchHtml ? `<div style="font-size:11px;line-height:1.7">${matchHtml}</div>` : ''}
+    ${errorHtml}
+  </div>`;
+}
+
+function renderPriceChangeRow(item) {
+  const diff = item.current_price - item.previous_price;
+  const pct = item.previous_price
+    ? Math.round(Math.abs(diff) / item.previous_price * 100)
+    : 0;
+  const isDown = diff < 0;
+  const color = isDown ? 'var(--score-green)' : 'var(--score-red)';
+  const arrow = isDown ? '↓' : '↑';
+  const time = item.changed_at ? timeAgo(item.changed_at) : '–';
+
+  return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;
+      align-items:baseline;gap:8px;margin-bottom:3px">
+      <div style="font-size:13px;font-weight:600;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${escapeHtml(item.title || 'Listing')}
+        ${item.url
+          ? `<a href="${item.url}" target="_blank"
+              style="margin-left:5px;font-size:11px;color:var(--accent);
+              font-weight:400;text-decoration:none">View ↗</a>`
+          : ''}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${color};
+        flex-shrink:0;white-space:nowrap">
+        ${arrow} ${Math.abs(diff).toLocaleString()} CZK
+        <span style="font-size:11px;font-weight:400">(${pct}%)</span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;
+      font-size:11px;color:var(--text-muted)">
+      <span>${escapeHtml(item.locality || '')}</span>
+      <span>${time}</span>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+      ${(item.previous_price||0).toLocaleString()} →
+      <span style="color:${color}">${(item.current_price||0).toLocaleString()} CZK</span>
+    </div>
+  </div>`;
+}
+
+let _notifOffset = 0;
+let _notifType = 'all';
+let _runsOffset = 0;
+
+async function loadLogSection() {
+  // Activity feed
+  _runsOffset = 0;
+  await loadActivityFeed(false);
+
+  // Price changes
+  const priceResp = await fetch('/api/logs/price-changes');
+  const priceData = await priceResp.json();
+  const pcEl = document.getElementById('price-changes-feed');
+  if (!priceData.length) {
+    pcEl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;'
+      + 'padding:12px 0">No price changes tracked yet. '
+      + 'Data accumulates over a few days of scraping.</div>';
+  } else {
+    pcEl.innerHTML = priceData.map(renderPriceChangeRow).join('');
+  }
+
+  // Notifications
+  _notifOffset = 0;
+  _notifType = 'all';
+  document.querySelectorAll('.notif-filter-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.type === 'all');
+    p.onclick = () => {
+      document.querySelectorAll('.notif-filter-pill')
+        .forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      _notifType = p.dataset.type;
+      _notifOffset = 0;
+      loadNotifications(false);
+    };
+  });
+  await loadNotifications(false);
+
+  // Load more buttons
+  document.getElementById('btn-load-more-runs').onclick = () => {
+    _runsOffset += 20;
+    loadActivityFeed(true);
+  };
+  document.getElementById('btn-load-more-notifs').onclick = () => {
+    _notifOffset += 50;
+    loadNotifications(true);
+  };
+}
+
+async function loadActivityFeed(append) {
+  const resp = await fetch(
+    `/api/logs/runs?limit=20&offset=${_runsOffset}`
+  );
+  const data = await resp.json();
+  const el = document.getElementById('activity-feed');
+
+  if (!append) el.innerHTML = '';
+
+  if (!data.items.length && !append) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;'
+      + 'padding:12px 0">No scraper runs recorded yet. '
+      + 'Activity will appear here after the next fetch.</div>';
+  } else {
+    el.innerHTML += data.items.map(renderActivityRow).join('');
+  }
+
+  document.getElementById('btn-load-more-runs').style.display =
+    (_runsOffset + 20 < data.total) ? 'block' : 'none';
+}
+
+async function loadNotifications(append) {
+  const resp = await fetch(
+    `/api/notifications/log?offset=${_notifOffset}&limit=50&type=${_notifType}`
+  );
+  const data = await resp.json();
+  const el = document.getElementById('notif-log-list');
+
+  if (!append) el.innerHTML = '';
+
+  if (!data.items.length && !append) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;'
+      + 'padding:12px 0">No notifications sent yet.</div>';
+  } else {
+    el.innerHTML += data.items.map(renderNotifRow).join('');
+  }
+
+  document.getElementById('btn-load-more-notifs').style.display =
+    (_notifOffset + 50 < data.total) ? 'block' : 'none';
+}
+
+function updateSchedulerCard(sched) {
+  const running = sched && sched.running;
+  const manualOnly = sched && sched.manual_only;
+  const isManual = manualOnly || (sched && sched.interval_minutes === 0);
+
+  const dot = document.getElementById('sched-status-dot');
+  if (dot) dot.style.background =
+    isManual ? 'var(--text-muted)' : (running ? 'var(--score-green)' : 'var(--text-muted)');
+  const label = document.getElementById('sched-status-label');
+  if (label) label.textContent = isManual ? 'Manual' : (running ? 'Running' : 'Paused');
+  const toggleBtn = document.getElementById('btn-sched-toggle');
+  if (toggleBtn) toggleBtn.textContent = running ? 'Pause' : 'Resume';
+
+  const nextRunText = isManual ? '' : (sched && sched.next_run ? `· Next: ${timeUntil(sched.next_run)}` : '');
+  const lastEl = document.getElementById('sched-last-run');
+  if (lastEl) {
+    lastEl.textContent = (sched && sched.last_run)
+      ? `Last check: ${timeAgo(sched.last_run)} · ${sched.last_run_count || 0} fetched ${nextRunText}`
+      : `Never run ${nextRunText}`;
+  }
+  const nextEl = document.getElementById('sched-next-run');
+  if (nextEl) nextEl.textContent = '';
+
+  const sepEl = document.getElementById('sched-sep');
+  if (sepEl) sepEl.style.display = (isManual || !(sched && sched.next_run)) ? 'none' : 'inline';
+}
+
+function timeUntil(iso) {
+  let t = iso;
+  if (!t.endsWith('Z') && !t.includes('+')) t = t.replace(' ', 'T') + 'Z';
+  const diff = new Date(t).getTime() - Date.now();
+  if (isNaN(diff)) return '—';
+  const mins = Math.max(0, Math.round(diff / 60000));
+  if (mins < 60) return mins + ' min';
+  return Math.round(mins / 60) + 'h';
+}
+
+document.getElementById('btn-fetch-now').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-fetch-now');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Fetching…';
+  await fetch('/api/scheduler/trigger', { method: 'POST' });
+  setTimeout(async () => {
+    btn.disabled = false;
+    btn.textContent = orig;
+    try {
+      const st = await (await fetch('/api/status')).json();
+      updateSchedulerCard(st.scheduler);
+    } catch (e) {}
+    loadNotifications(false);
+  }, 3000);
+});
+
+document.getElementById('btn-sched-toggle').addEventListener('click', async () => {
+  try {
+    const res = await (await fetch('/api/scheduler/toggle', { method: 'POST' })).json();
+    updateSchedulerCard(res);
+    pollStatus();
+  } catch (e) { console.error(e); }
+});
+
+function renderNotifRow(n) {
+  const time = n.sent_at ? timeAgo(n.sent_at) : '–';
+  const price = n.price
+    ? `${n.price.toLocaleString()} CZK${n.notification_type === 'new_match' ? '/mo' : ''}`
+    : '';
+  const failed = !n.success;
+  const typeColor = n.notification_type === 'price_drop'
+    ? 'var(--score-green)' : 'var(--accent)';
+  const typeLabel = n.notification_type === 'price_drop'
+    ? '↓ Price drop' : 'New match';
+
+  return `<div style="padding:12px 0;border-bottom:1px solid var(--border);
+    ${failed ? 'opacity:0.55' : ''}">
+    <div style="display:flex;justify-content:space-between;
+      align-items:flex-start;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${escapeHtml(n.title || 'Listing removed')}
+          ${n.url
+            ? `<a href="${n.url}" target="_blank"
+                style="margin-left:6px;font-size:11px;color:var(--accent);
+                font-weight:400;text-decoration:none">View ↗</a>`
+            : ''}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted)">
+          ${[escapeHtml(n.locality || ''), price, n.profile_name ? escapeHtml(n.profile_name) : '']
+            .filter(Boolean).join(' · ')}
+        </div>
+        ${failed
+          ? `<div style="font-size:11px;color:var(--score-red);margin-top:3px">
+              ⚠ ${escapeHtml(n.error_message || 'Send failed')}</div>`
+          : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:11px;color:var(--text-muted);
+          margin-bottom:5px">${time}</div>
+        <span style="font-size:10px;font-weight:700;letter-spacing:0.06em;
+          text-transform:uppercase;color:${typeColor};
+          background:${typeColor}18;padding:2px 7px;
+          border-radius:999px;border:1px solid ${typeColor}40">
+          ${typeLabel}
+        </span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setNotifToggle(on) {
+  const t = document.getElementById('notif-toggle');
+  t.classList.toggle('on', on);
+  t.dataset.on = on ? '1' : '0';
+  document.getElementById('email-form').style.opacity = on ? '1' : '0.55';
+}
+
+document.getElementById('notif-toggle').addEventListener('click', async () => {
+  const on = document.getElementById('notif-toggle').dataset.on !== '1';
+  setNotifToggle(on);
+  await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notifications_enabled: on ? '1' : '0' }),
+  });
+});
+
+document.getElementById('btn-save-settings').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-save-settings');
+  const presetVal = document.getElementById('s-smtp-host-preset').value;
+  const smtpHost = presetVal === 'custom'
+    ? document.getElementById('s-smtp-host').value.trim()
+    : presetVal;
+  const body = {
+    smtp_host: smtpHost,
+    smtp_port: document.getElementById('s-smtp-port').value.trim() || '587',
+    smtp_user: document.getElementById('s-smtp-user').value.trim(),
+    email_from: document.getElementById('s-email-from').value.trim(),
+    email_to: document.getElementById('s-email-to').value.trim(),
+  };
+  const pw = document.getElementById('s-smtp-password').value;
+  if (pw) body.smtp_password = pw;
+
+  await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  setSaveButtonState('btn-save-settings', 'saved');
+});
+
+document.getElementById('btn-test-email').addEventListener('click', async () => {
+  const out = document.getElementById('test-email-result');
+  out.textContent = 'Sending…';
+  out.style.color = 'var(--text-muted)';
+  try {
+    const r = await (await fetch('/api/notifications/test', { method: 'POST' })).json();
+    if (r.success) {
+      out.textContent = 'Test email sent – check your inbox.';
+      out.style.color = 'var(--score-green)';
+    } else {
+      out.textContent = 'Failed: ' + (r.error || 'unknown error');
+      out.style.color = 'var(--score-red)';
+    }
+  } catch (e) {
+    out.textContent = 'Failed: ' + e;
+    out.style.color = 'var(--score-red)';
+  }
+});
+
+/* ===== Insights ===== */
+async function loadInsights() {
+  let health;
+  try {
+    health = await (await fetch('/api/insights/source-health')).json();
+  } catch (e) { return; }
+
+  const totalListings = health.reduce((sum, h) => sum + (h.total_active || 0), 0);
+  const empty = totalListings < 20;
+  document.getElementById('insights-empty').style.display = empty ? 'block' : 'none';
+  document.getElementById('insights-content').style.display = empty ? 'none' : 'block';
+  if (empty) return;
+
+  loadPriceChart('rent');
+  loadActivityChart();
+  renderHealthRows(health);
+
+  try {
+    const pulse = await (await fetch('/api/insights/market-pulse')).json();
+    renderMarketPulse(pulse);
+  } catch (e) { console.error(e); }
+
+  await loadTomChart();
+  await loadDowChart();
+  await loadPriceDistChart('rent');
+  await loadMatchRate();
+}
+
+async function loadPriceChart(listingType) {
+  document.querySelectorAll('#price-chart-type .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.type === listingType);
+  });
+
+  let data;
+  try {
+    data = await (await fetch('/api/insights/price-by-district?listing_type=' + encodeURIComponent(listingType))).json();
+  } catch (e) { return; }
+
+  if (priceChart) { priceChart.destroy(); priceChart = null; }
+  priceChart = new Chart(document.getElementById('price-chart'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Avg CZK/m²',
+        data: data.values,
+        backgroundColor: '#3b82f6',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${Math.round(ctx.raw).toLocaleString()} CZK/m² (${data.counts[ctx.dataIndex]} listings)`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', maxRotation: 40, font: { size: 11 } } },
+        y: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', callback: v => v.toLocaleString() } }
+      }
+    }
+  });
+}
+
+async function loadActivityChart() {
+  let data;
+  try {
+    data = await (await fetch('/api/insights/listings-by-day')).json();
+  } catch (e) { return; }
+
+  if (activityChart) { activityChart.destroy(); activityChart = null; }
+  activityChart = new Chart(document.getElementById('activity-chart'), {
+    type: 'line',
+    data: {
+      labels: data.labels.map(d => {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+      }),
+      datasets: [
+        { label: 'Sreality', data: data.datasets.sreality, borderColor: '#3b82f6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+        { label: 'Bezrealitky', data: data.datasets.bezrealitky, borderColor: '#818cf8', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+        { label: 'Expats', data: data.datasets.expats, borderColor: '#fb923c', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#6b6b6b', boxWidth: 12, font: { size: 12 } } } },
+      scales: {
+        x: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', font: { size: 11 } } },
+        y: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', precision: 0 }, min: 0 }
+      }
+    }
+  });
+}
+
+function healthDotColor(lastActive) {
+  if (!lastActive) return 'var(--text-muted)';
+  let t = lastActive;
+  if (!t.endsWith('Z') && !t.includes('+')) t = t.replace(' ', 'T') + 'Z';
+  const ageH = (Date.now() - new Date(t).getTime()) / 3600000;
+  if (isNaN(ageH)) return 'var(--text-muted)';
+  if (ageH <= 2) return 'var(--score-green)';
+  if (ageH <= 25) return 'var(--score-amber)';
+  return 'var(--text-muted)';
+}
+
+function renderHealthRows(health) {
+  const order = ['sreality', 'bezrealitky', 'expats'];
+  const bySource = {};
+  health.forEach(h => { bySource[h.source] = h; });
+  const wrap = document.getElementById('health-rows');
+  wrap.innerHTML = '';
+  order.forEach(src => {
+    const h = bySource[src] || { total_active: 0, last_active: null };
+    const div = document.createElement('div');
+    div.className = 'health-row';
+    div.innerHTML = `
+      <div style="font-weight:600;text-transform:capitalize">${src}</div>
+      <div style="color:var(--text-muted)">${fmtInt(h.total_active)} listings</div>
+      <div style="color:var(--text-muted)">${h.last_active ? timeAgo(h.last_active) : '—'}</div>
+      <div class="health-dot" style="background:${healthDotColor(h.last_active)}"></div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function renderMarketPulse(p) {
+  const body = document.getElementById('pulse-body');
+  const noData = (!p.this_week.new_listings && !p.last_week.new_listings);
+  if (noData) {
+    body.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-muted)">Not enough data yet — check back after a few days of scraping.</div>';
+    return;
+  }
+
+  const listingUp = p.listing_delta >= 0;
+  const listingColor = listingUp ? 'var(--score-green)' : 'var(--score-red)';
+  const listingArrow = listingUp ? '↑' : '↓';
+  const priceDown = p.price_delta <= 0;
+  const priceColor = priceDown ? 'var(--score-green)' : 'var(--score-red)';
+  const priceArrow = priceDown ? '↓' : '↑';
+
+  body.innerHTML = `
+    <div class="pulse-grid">
+      <div class="pulse-item">
+        <div class="pulse-label">New listings this week</div>
+        <div class="pulse-big">${fmtInt(p.this_week.new_listings)}
+          <span style="font-size:13px;color:${listingColor}">${listingArrow} ${Math.abs(p.listing_delta_pct)}%</span>
+        </div>
+        <div class="pulse-sub">vs ${fmtInt(p.last_week.new_listings)} last week</div>
+      </div>
+      <div class="pulse-item">
+        <div class="pulse-label">Avg price this week</div>
+        <div class="pulse-big">${fmtInt(p.this_week.avg_price)} CZK
+          <span style="font-size:13px;color:${priceColor}">${priceArrow} ${Math.abs(p.price_delta_pct)}%</span>
+        </div>
+        <div class="pulse-sub">vs ${fmtInt(p.last_week.avg_price)} last week</div>
+      </div>
+    </div>
+  `;
+}
+
+document.getElementById('price-chart-type').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (pill) loadPriceChart(pill.dataset.type);
+});
+
+async function loadTomChart() {
+  const data = await fetch('/api/insights/time-on-market').then(r => r.json());
+  if (tomChart) { tomChart.destroy(); tomChart = null; }
+  if (!data.labels.length) return;
+  tomChart = new Chart(document.getElementById('tom-chart'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Avg days',
+        data: data.values,
+        backgroundColor: '#818cf8',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw} days avg (${data.counts[ctx.dataIndex]} listings)`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b' } },
+        y: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+async function loadDowChart() {
+  const data = await fetch('/api/insights/day-of-week').then(r => r.json());
+  if (dowChart) { dowChart.destroy(); dowChart = null; }
+  const max = Math.max(...data.values);
+  dowChart = new Chart(document.getElementById('dow-chart'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.values,
+        backgroundColor: data.values.map(v =>
+          v === max ? '#4ade80' : '#4a8fff'
+        ),
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b' } },
+        y: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', precision: 0 } }
+      }
+    }
+  });
+}
+
+let priceDistChart = null;
+
+async function loadPriceDistChart(type = 'rent') {
+  const data = await fetch(`/api/insights/price-distribution?listing_type=${type}`).then(r => r.json());
+  if (priceDistChart) { priceDistChart.destroy(); priceDistChart = null; }
+  priceDistChart = new Chart(document.getElementById('price-dist-chart'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.values,
+        backgroundColor: '#4a8fff',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', font: { size: 11 } } },
+        y: { grid: { color: '#1c2f50' }, ticks: { color: '#6b6b6b', precision: 0 } }
+      }
+    }
+  });
+}
+
+document.querySelectorAll('.price-dist-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.price-dist-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadPriceDistChart(btn.dataset.type);
+  });
+});
+
+async function loadMatchRate() {
+  const data = await fetch('/api/insights/profile-match-rate').then(r => r.json());
+  const el = document.getElementById('match-rate-list');
+  if (!data.length) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px">No active profiles.</div>';
+    return;
+  }
+  el.innerHTML = data.map(p => `
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px">
+        <span>${p.profile}</span>
+        <span style="font-weight:600;color:${p.pct < 5 ? 'var(--score-amber)' : p.pct > 50 ? 'var(--score-green)' : 'var(--text)'}">
+          ${p.pct}% <span style="font-weight:400;color:var(--text-muted)">(${p.matching} / ${p.total})</span>
+        </span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:var(--border)">
+        <div style="height:6px;border-radius:3px;width:${Math.min(p.pct, 100)}%;
+          background:${p.pct < 5 ? 'var(--score-amber)' : 'var(--accent)'}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const validSections = ['feed', 'criteria', 'log', 'saved', 'insights', 'settings'];
+  const hash = window.location.hash.replace('#', '');
+  showSection(validSections.includes(hash) ? hash : 'feed');
+  loadProfiles();
+  pollStatus();
+  statusInterval = setInterval(pollStatus, 30000);
+  renderCitySelector();
+  renderDistrictSelector();
+  renderMetroSelector();
+  renderNeighborhoodSelector();
+  renderChainSelector(null);
+  renderRoomTypeSelector();
+  renderMultiSelectPills('furnished-selector', FURNISHED_OPTIONS, selectedFurnished, 'any');
+  renderMultiSelectPills('building-age-selector', BUILDING_AGE_OPTIONS, selectedBuildingAge, 'any');
+});
+</script>
+
+</body>
+</html>

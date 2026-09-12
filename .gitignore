@@ -1,0 +1,13 @@
+venv/
+flatradar.db
+flatradar.db.backup
+flatradar.log
+static/listing_images/
+__pycache__/
+*.pyc
+*.log
+nohup.out
+.env
+config_local.py
+*.db-wal
+*.db-shm
