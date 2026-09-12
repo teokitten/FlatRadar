@@ -152,36 +152,42 @@ def init_db():
         except Exception:
             pass
 
-    # Migrate existing single-value data to JSON array format
-    try:
-        conn.execute("""
-            UPDATE profiles
-            SET feature_furnished_v2 = CASE
-                WHEN feature_furnished IS NULL OR feature_furnished = 'any' OR feature_furnished = '' THEN '[]'
-                WHEN feature_furnished LIKE '[%' THEN feature_furnished
-                ELSE json_array(feature_furnished)
-            END
-            WHERE feature_furnished_v2 = '[]'
-        """)
-        conn.execute("""
-            UPDATE profiles
-            SET feature_building_age_v2 = CASE
-                WHEN feature_building_age IS NULL OR feature_building_age = 'any' OR feature_building_age = '' THEN '[]'
-                WHEN feature_building_age LIKE '[%' THEN feature_building_age
-                ELSE json_array(feature_building_age)
-            END
-            WHERE feature_building_age_v2 = '[]'
-        """)
-        conn.commit()
-    except Exception as e:
-        print(f'Furnished migration: {e}')
-
     conn.close()
 
     img_dir = os.path.join(os.path.dirname(config.DATABASE_PATH), 'static', 'listing_images')
     os.makedirs(img_dir, exist_ok=True)
 
     seed_defaults()
+
+    # Only run furnished/age migration once
+    already_migrated = get_setting('furnished_migration_done', '0')
+    if already_migrated != '1':
+        conn = get_connection()
+        try:
+            conn.execute("""
+                UPDATE profiles
+                SET feature_furnished_v2 = CASE
+                    WHEN feature_furnished IS NULL OR feature_furnished = 'any' OR feature_furnished = '' THEN '[]'
+                    WHEN feature_furnished LIKE '[%' THEN feature_furnished
+                    ELSE json_array(feature_furnished)
+                END
+                WHERE feature_furnished_v2 = '[]'
+            """)
+            conn.execute("""
+                UPDATE profiles
+                SET feature_building_age_v2 = CASE
+                    WHEN feature_building_age IS NULL OR feature_building_age = 'any' OR feature_building_age = '' THEN '[]'
+                    WHEN feature_building_age LIKE '[%' THEN feature_building_age
+                    ELSE json_array(feature_building_age)
+                END
+                WHERE feature_building_age_v2 = '[]'
+            """)
+            conn.commit()
+            set_setting('furnished_migration_done', '1')
+        except Exception as e:
+            print(f'Furnished migration: {e}')
+        finally:
+            conn.close()
 
 
 def get_setting(key, default=''):
