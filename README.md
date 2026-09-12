@@ -114,4 +114,4 @@ MIT License – see [LICENSE](LICENSE) for details.
 
 ---
 
-Built by [Teo Moldovanu](https://teokitten.github.io) · [GitHub](https://github.com/teokitten/flatradar)
+Built by [Teo Moldovanu](https://teokitten.github.io)
