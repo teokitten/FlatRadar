@@ -2,9 +2,11 @@
 
 A personal apartment search tool for the Czech Republic. Aggregates listings from Sreality, Bezrealitky, and Expats.cz into one place, scores them against your criteria, and emails you when new matches appear.
 
+Built for English-speaking expats searching for apartments in Czech Republic.
+
 **Free and open-source.** MIT license. Built by [Teo Moldovanu](https://teokitten.github.io).
 
-Built for English-speaking expats searching for apartments in Czech Republic.
+**[→ Live demo](https://teokitten.github.io/flatradar)**
 
 ---
 
