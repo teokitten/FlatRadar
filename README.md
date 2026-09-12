@@ -6,7 +6,7 @@ Built for English-speaking expats searching for apartments in Czech Republic.
 
 **Free and open-source.** MIT license. Built by [Teo Moldovanu](https://teokitten.github.io).
 
-**[→ Live demo](https://teokitten.github.io/flatradar)**
+**[→ Live demo](https://teokitten.github.io/FlatRadar)**
 
 ---
 
